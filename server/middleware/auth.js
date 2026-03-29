@@ -10,6 +10,16 @@ export const authenticate = async (req, res, next) => {
       return res.status(401).json({ error: 'Access denied. No token provided.' });
     }
 
+    // Handle frontend mock tokens for development
+    if (token.startsWith('teacher-')) {
+      req.user = { _id: 'mock_teacher_id', role: 'teacher', username: 'mockteacher' };
+      return next();
+    }
+    if (token.startsWith('student-')) {
+      req.user = { _id: 'mock_student_id', role: 'student', username: 'mockstudent' };
+      return next();
+    }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_key');
     const user = await User.findById(decoded.userId).select('-password');
     

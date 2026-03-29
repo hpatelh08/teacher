@@ -58,6 +58,10 @@ app.use('/api/reports', reportsRoutes);
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/teacher_portal';
 
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
 mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => app.listen(PORT, () => console.log(`Server running on port ${PORT}`)))
-  .catch((err) => console.error(err));
+  .then(() => console.log('MongoDB connected'))
+  .catch((err) => {
+    console.error('MongoDB connection failed. Running in limited mode:', err.message);
+  });

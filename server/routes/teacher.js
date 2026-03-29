@@ -6,11 +6,13 @@ import {
   getAssignments, 
   createAssignment, 
   getExams, 
-  createExam, 
-  getStudentsInClass, 
-  getStudyMaterials, 
-  uploadStudyMaterial, 
-  getAttendanceRecords, 
+  createExam,
+  getStudentsInClass,
+  getStudyMaterials,
+  uploadStudyMaterial,
+  updateStudyMaterial,
+  deleteStudyMaterial,
+  getAttendanceRecords,
   markAttendance,
   getMarks,
   enterMarks,
@@ -21,13 +23,18 @@ import {
 import { authenticate, isTeacher } from '../middleware/auth.js';
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
 
 const router = express.Router();
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/study-materials/');
+    const uploadDir = path.resolve('uploads/study-materials');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + '-' + file.originalname);
@@ -35,12 +42,16 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  // Accept images, pdfs, and documents
+  // Accept images, pdfs, videos, and common office documents
   if (
     file.mimetype.startsWith('image/') ||
+    file.mimetype.startsWith('video/') ||
     file.mimetype === 'application/pdf' ||
     file.mimetype === 'application/msword' ||
-    file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+    file.mimetype === 'application/vnd.ms-powerpoint' ||
+    file.mimetype === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
+    file.mimetype === 'text/plain'
   ) {
     cb(null, true);
   } else {
@@ -48,7 +59,11 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({ storage, fileFilter });
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 50 * 1024 * 1024 }
+});
 
 // Teacher dashboard
 router.get('/dashboard', authenticate, isTeacher, getDashboard);
@@ -69,9 +84,8 @@ router.post('/exams', authenticate, isTeacher, createExam);
 // Study materials
 router.get('/study-materials', authenticate, isTeacher, getStudyMaterials);
 router.post('/study-materials', authenticate, isTeacher, upload.single('file'), uploadStudyMaterial);
-
-// Attendance management
-router.get('/attendance', authenticate, isTeacher, getAttendanceRecords);
+  router.put('/study-materials/:id', authenticate, isTeacher, upload.single('file'), updateStudyMaterial);
+  router.delete('/study-materials/:id', authenticate, isTeacher, deleteStudyMaterial);
 router.post('/attendance', authenticate, isTeacher, markAttendance);
 
 // Marks management

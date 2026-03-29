@@ -23,7 +23,8 @@ import {
   Target,
   Award,
   User,
-  Plus
+  Plus,
+  Megaphone
 } from 'lucide-react';
 
 const Dashboard = ({ currentUser, onLogout, onNavigate }) => {
@@ -160,7 +161,14 @@ const Dashboard = ({ currentUser, onLogout, onNavigate }) => {
   const [ptmPendingTasks, setPtmPendingTasks] = useState([]);
 
   // Attendance summary from localStorage
-  const [attendanceSummary, setAttendanceSummary] = useState({ present: 0, absent: 0, total: 0, uniformYes: 0, uniformNo: 0, idCardYes: 0, idCardNo: 0 });
+  const [attendanceSummary, setAttendanceSummary] = useState({
+    present: 0,
+    absent: 0,
+    late: 0,
+    total: 0,
+    applicationReceivedCount: 0,
+    applicationNotReceivedCount: 0
+  });
 
   useEffect(() => {
     const loadAttendanceSummary = () => {
@@ -173,18 +181,17 @@ const Dashboard = ({ currentUser, onLogout, onNavigate }) => {
             setAttendanceSummary({
               present: parsed.present || 0,
               absent: parsed.absent || 0,
+              late: parsed.late || 0,
               total: parsed.total || 0,
-              uniformYes: parsed.uniformYes || 0,
-              uniformNo: parsed.uniformNo || 0,
-              idCardYes: parsed.idCardYes || 0,
-              idCardNo: parsed.idCardNo || 0
+              applicationReceivedCount: parsed.applicationReceivedCount || 0,
+              applicationNotReceivedCount: parsed.applicationNotReceivedCount || 0
             });
           } else {
-            setAttendanceSummary({ present: 0, absent: 0, total: 0, uniformYes: 0, uniformNo: 0, idCardYes: 0, idCardNo: 0 });
+            setAttendanceSummary({ present: 0, absent: 0, late: 0, total: 0, applicationReceivedCount: 0, applicationNotReceivedCount: 0 });
           }
         }
       } catch {
-        setAttendanceSummary({ present: 0, absent: 0, total: 0, uniformYes: 0, uniformNo: 0, idCardYes: 0, idCardNo: 0 });
+        setAttendanceSummary({ present: 0, absent: 0, late: 0, total: 0, applicationReceivedCount: 0, applicationNotReceivedCount: 0 });
       }
     };
 
@@ -521,10 +528,10 @@ const Dashboard = ({ currentUser, onLogout, onNavigate }) => {
           >
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-blue-100 font-medium">Uniform</p>
-                <h3 className="text-3xl font-bold mt-2">{attendanceSummary.uniformNo}</h3>
+                <p className="text-blue-100 font-medium">Application Received</p>
+                <h3 className="text-3xl font-bold mt-2">{attendanceSummary.applicationReceivedCount}</h3>
                 <p className="text-blue-100 text-sm mt-2 flex items-center gap-1 font-medium bg-blue-400/30 w-max px-2 py-0.5 rounded-full">
-                  Without Uniform
+                  Parent submitted
                 </p>
               </div>
               <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
@@ -539,10 +546,10 @@ const Dashboard = ({ currentUser, onLogout, onNavigate }) => {
           >
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-purple-100 font-medium">ID Card</p>
-                <h3 className="text-3xl font-bold mt-2">{attendanceSummary.idCardNo}</h3>
+                <p className="text-purple-100 font-medium">Application Pending</p>
+                <h3 className="text-3xl font-bold mt-2">{attendanceSummary.applicationNotReceivedCount}</h3>
                 <p className="text-purple-100 text-sm mt-2 font-medium bg-purple-400/30 w-max px-2 py-0.5 rounded-full">
-                  Without ID Card
+                  Notify parent
                 </p>
               </div>
               <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
@@ -630,7 +637,7 @@ const Dashboard = ({ currentUser, onLogout, onNavigate }) => {
                 ];
 
                 // Read all syllabus data from localStorage
-                const syllabusResults = [];
+                const syllabusResultsMap = new Map();
                 for (let i = 0; i < localStorage.length; i++) {
                   const key = localStorage.key(i);
                   if (key && key.startsWith('syllabus-data-')) {
@@ -648,12 +655,22 @@ const Dashboard = ({ currentUser, onLogout, onNavigate }) => {
                             if (st.completed) completedSubTopics++;
                           });
                         });
-                        const percent = totalSubTopics > 0 ? Math.round((completedSubTopics / totalSubTopics) * 100) : 0;
-                        syllabusResults.push({ subjectName, percent });
+                        
+                        if (!syllabusResultsMap.has(subjectName)) {
+                          syllabusResultsMap.set(subjectName, { total: 0, completed: 0 });
+                        }
+                        const current = syllabusResultsMap.get(subjectName);
+                        current.total += totalSubTopics;
+                        current.completed += completedSubTopics;
                       });
                     } catch { /* ignore */ }
                   }
                 }
+
+                const syllabusResults = Array.from(syllabusResultsMap.entries()).map(([subjectName, counts]) => ({
+                  subjectName,
+                  percent: counts.total > 0 ? Math.round((counts.completed / counts.total) * 100) : 0
+                }));
 
                 if (syllabusResults.length === 0) {
                   // Fallback if no syllabus data
@@ -681,42 +698,6 @@ const Dashboard = ({ currentUser, onLogout, onNavigate }) => {
                   </div>
                 ));
               })()}
-            </div>
-          </div>
-
-          {/* Birthday/Event Alerts */}
-          <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl shadow-sm border border-pink-100 p-5 hover:shadow-md transition-shadow">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <Bell className="w-5 h-5 text-pink-500 animate-bounce" /> Alerts & Events
-            </h3>
-            <div className="space-y-3">
-              {alerts.map((alert) => (
-                <div key={alert.id} className="flex items-start gap-4 bg-white/70 backdrop-blur-sm p-3.5 rounded-xl border border-pink-200/50 shadow-sm transition-transform hover:-translate-y-0.5">
-                  <div className="mt-0.5 bg-white p-1.5 rounded-lg shadow-sm">{alert.icon}</div>
-                  <p className="text-sm font-semibold text-gray-800 leading-snug">{alert.message}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Recent Announcements */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-            <h3 className="text-lg font-bold text-gray-800 mb-5">Recent Announcements</h3>
-            <div className="space-y-5 px-2">
-              {announcements.map((ann, idx) => (
-                <div key={ann.id} className="relative flex items-start gap-4">
-                  {idx !== announcements.length - 1 && (
-                    <div className="absolute top-5 left-1.5 w-0.5 h-[calc(100%+0.5rem)] bg-gray-200 -z-10" />
-                  )}
-                  <div className={`mt-1 flex-shrink-0 w-3.5 h-3.5 rounded-full border-[3px] shadow-sm box-content bg-white ${ann.type === 'urgent' ? 'border-red-500' : 'border-blue-500'}`} />
-                  <div className="flex-1 pb-1">
-                    <p className={`text-sm font-bold ${ann.type === 'urgent' ? 'text-red-600' : 'text-gray-800'} leading-snug`}>
-                      {ann.title}
-                    </p>
-                    <p className="text-xs font-semibold text-gray-500 mt-1.5 bg-gray-50 w-max px-2 py-0.5 rounded-md">{ann.date}</p>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
@@ -825,6 +806,50 @@ const Dashboard = ({ currentUser, onLogout, onNavigate }) => {
                 <BookOpen className="w-6 h-6 text-amber-600 group-hover:scale-110 transition-transform" />
                 <span className="text-xs font-bold text-gray-700 group-hover:text-amber-700">Upload Notes</span>
               </button>
+              <button
+                type="button"
+                onClick={() => handleQuickAction('communication')}
+                className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-gray-50 hover:bg-rose-50 hover:border-rose-100 transition-all border border-gray-100 group shadow-sm hover:shadow"
+              >
+                <Megaphone className="w-6 h-6 text-rose-600 group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-bold text-gray-700 group-hover:text-rose-700">Announcements</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Birthday/Event Alerts */}
+          <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl shadow-sm border border-pink-100 p-5 hover:shadow-md transition-shadow">
+            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <Bell className="w-5 h-5 text-pink-500 animate-bounce" /> Alerts & Events
+            </h3>
+            <div className="space-y-3">
+              {alerts.map((alert) => (
+                <div key={alert.id} className="flex items-start gap-4 bg-white/70 backdrop-blur-sm p-3.5 rounded-xl border border-pink-200/50 shadow-sm transition-transform hover:-translate-y-0.5">
+                  <div className="mt-0.5 bg-white p-1.5 rounded-lg shadow-sm">{alert.icon}</div>
+                  <p className="text-sm font-semibold text-gray-800 leading-snug">{alert.message}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Recent Announcements */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+            <h3 className="text-lg font-bold text-gray-800 mb-5">Recent Announcements</h3>
+            <div className="space-y-5 px-2">
+              {announcements.map((ann, idx) => (
+                <div key={ann.id} className="relative flex items-start gap-4">
+                  {idx !== announcements.length - 1 && (
+                    <div className="absolute top-5 left-1.5 w-0.5 h-[calc(100%+0.5rem)] bg-gray-200 -z-10" />
+                  )}
+                  <div className={`mt-1 flex-shrink-0 w-3.5 h-3.5 rounded-full border-[3px] shadow-sm box-content bg-white ${ann.type === 'urgent' ? 'border-red-500' : 'border-blue-500'}`} />
+                  <div className="flex-1 pb-1">
+                    <p className={`text-sm font-bold ${ann.type === 'urgent' ? 'text-red-600' : 'text-gray-800'} leading-snug`}>
+                      {ann.title}
+                    </p>
+                    <p className="text-xs font-semibold text-gray-500 mt-1.5 bg-gray-50 w-max px-2 py-0.5 rounded-md">{ann.date}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 

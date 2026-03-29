@@ -497,27 +497,25 @@ const StudentManagement = ({ currentUser }) => {
   };
 
   const handleSaveHealthRecord = async () => {
-    if (!healthForm.studentId || !healthForm.name.trim()) {
-      alert('Student name is required');
+    if (!healthForm.studentId) {
+      alert('Student not found');
       return;
     }
 
     try {
       setSavingHealthRecord(true);
+      const sanitizedAge = healthForm.age === '' ? null : Number(healthForm.age);
+      const age = Number.isFinite(sanitizedAge) ? sanitizedAge : null;
+      const allergies = String(healthForm.allergies || '').trim();
+      const weight = String(healthForm.weight || '').trim();
       const updatedFields = {
-        name: healthForm.name.trim(),
-        bloodGroup: healthForm.bloodGroup.trim(),
-        dateOfBirth: healthForm.dateOfBirth || null,
-        age: healthForm.age ? Number(healthForm.age) : null,
-        healthInfo: healthForm.healthInfo.trim(),
-        allergies: healthForm.allergies.trim(),
-        email: healthForm.email.trim(),
-        phone: healthForm.phone.trim(),
-        address: healthForm.address.trim(),
-        fatherName: healthForm.fatherName.trim(),
-        motherName: healthForm.motherName.trim(),
-        parentPhone: healthForm.parentPhone.trim()
+        age,
+        allergies
       };
+
+      if (weight) {
+        updatedFields.healthInfo = `Weight: ${weight} kg`;
+      }
 
       if (String(healthForm.studentId).startsWith('MOCK_STU_')) {
         setProfileStudents((prev) =>

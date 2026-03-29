@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, Line, RadialBarChart, RadialBar } from 'recharts';
-import { TrendingUp, AlertTriangle, Users, MessageCircle, BarChart2, Award, CheckCircle2 } from 'lucide-react';
+import { TrendingUp, AlertTriangle, Users, MessageCircle, BarChart2, Award, Sparkles, BookOpen } from 'lucide-react';
 
 const PerformanceAnalytics = ({ currentUser }) => {
   const [analyticsData, setAnalyticsData] = useState(null);
@@ -73,12 +73,12 @@ const PerformanceAnalytics = ({ currentUser }) => {
       { studentName: 'Vihan Mehta', className: '8', section: 'B', averagePercentage: 92 }
     ],
     weeklyAttendanceTrend: [
-      { date: '2026-02-23', percentage: 95, uniform: 90, icard: 94 }, // Monday
-      { date: '2026-02-24', percentage: 94, uniform: 91, icard: 95 }, // Tuesday
-      { date: '2026-02-25', percentage: 91, uniform: 88, icard: 92 }, // Wednesday
-      { date: '2026-02-26', percentage: 96, uniform: 94, icard: 96 }, // Thursday
-      { date: '2026-02-27', percentage: 94, uniform: 92, icard: 95 }, // Friday
-      { date: '2026-02-28', percentage: 93, uniform: 95, icard: 97 }  // Saturday
+      { date: '2026-02-23', percentage: 95 }, // Monday
+      { date: '2026-02-24', percentage: 94 }, // Tuesday
+      { date: '2026-02-25', percentage: 91 }, // Wednesday
+      { date: '2026-02-26', percentage: 96 }, // Thursday
+      { date: '2026-02-27', percentage: 94 }, // Friday
+      { date: '2026-02-28', percentage: 93 }  // Saturday
     ],
     syllabusStatus: [
       { subjectName: 'Math', completionPercentage: 75 },
@@ -92,34 +92,18 @@ const PerformanceAnalytics = ({ currentUser }) => {
 
   const overallStats = {
     totalStudents: (effectiveData.weakStudents?.length || 0) + (effectiveData.topPerformers?.length || 0) + 50,
-    averageClassPerformance: effectiveData.classPerformance.reduce((acc, cls) => acc + (cls.averagePercentage || 0), 0) / effectiveData.classPerformance.length,
-    overallAttendance: effectiveData.attendanceOverview.reduce((acc, cls) => acc + (cls.averageAttendance || 0), 0) / effectiveData.attendanceOverview.length,
+    averageClassPerformance: effectiveData.classPerformance.length ? (effectiveData.classPerformance.reduce((acc, cls) => acc + (cls.averagePercentage || 0), 0) / effectiveData.classPerformance.length) : 0,
+    overallAttendance: effectiveData.attendanceOverview.length ? (effectiveData.attendanceOverview.reduce((acc, cls) => acc + (cls.averageAttendance || 0), 0) / effectiveData.attendanceOverview.length) : 0,
     strongestSubject: effectiveData.subjectPerformance.sort((a, b) => b.averagePercentage - a.averagePercentage)[0]?.subjectName || 'N/A',
   };
 
-  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#64748b'];
+  const averageSubjectPerformance = effectiveData.subjectPerformance.length
+    ? Math.round(effectiveData.subjectPerformance.reduce((acc, subject) => acc + (subject.averagePercentage || 0), 0) / effectiveData.subjectPerformance.length)
+    : 0;
 
-  // Read actual syllabus progress from ClassManagement localStorage
-  const getLiveSyllabusStatus = () => {
-    const className = currentUser?.assignedClass || '8';
-    const section = currentUser?.division || 'B';
-    const classKey = `${className}-${section}`;
-    const saved = localStorage.getItem(`syllabus-data-${classKey}`);
-    if (!saved) return null;
-    try {
-      const syllabusMap = JSON.parse(saved);
-      return Object.entries(syllabusMap).map(([key, chapters]) => {
-        const subjectName = key.replace(/-\d+$/, '');
-        const totalTopics = chapters.reduce((s, ch) => s + ch.subTopics.length, 0);
-        const completedTopics = chapters.reduce((s, ch) => s + ch.subTopics.filter(t => t.completed).length, 0);
-        const completionPercentage = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
-        return { subjectName, completionPercentage };
-      });
-    } catch { return null; }
-  };
-
-  const liveSyllabus = getLiveSyllabusStatus();
-  const syllabusData = liveSyllabus || effectiveData.syllabusStatus;
+  const weeklyAttendanceAverage = effectiveData.weeklyAttendanceTrend.length
+    ? Math.round(effectiveData.weeklyAttendanceTrend.reduce((acc, item) => acc + (item.percentage || 0), 0) / effectiveData.weeklyAttendanceTrend.length)
+    : 0;
 
   // Dynamically compute failed students from localStorage marks data
   const getFailedStudents = () => {
@@ -190,45 +174,136 @@ const PerformanceAnalytics = ({ currentUser }) => {
   // Use actual failed students if available, otherwise fallback to mock
   const interventionStudents = failedStudents.length > 0 ? failedStudents : effectiveData.weakStudents;
 
+  const analyticsHighlights = [
+    {
+      label: 'Class Performance',
+      value: `${overallStats.averageClassPerformance.toFixed(1)}%`,
+      helper: 'Average across the class',
+      icon: TrendingUp,
+      accent: 'from-blue-500 to-indigo-600',
+      glow: 'shadow-blue-200/70'
+    },
+    {
+      label: 'Attendance Health',
+      value: `${overallStats.overallAttendance.toFixed(1)}%`,
+      helper: 'Weekly attendance average',
+      icon: Users,
+      accent: 'from-emerald-500 to-teal-500',
+      glow: 'shadow-emerald-200/70'
+    },
+    {
+      label: 'Subject Strength',
+      value: overallStats.strongestSubject,
+      helper: `${averageSubjectPerformance}% average across subjects`,
+      icon: BookOpen,
+      accent: 'from-violet-500 to-fuchsia-600',
+      glow: 'shadow-violet-200/70'
+    },
+    {
+      label: 'Interventions',
+      value: interventionStudents.length,
+      helper: 'Students needing support',
+      icon: AlertTriangle,
+      accent: 'from-rose-500 to-red-600',
+      glow: 'shadow-rose-200/70'
+    }
+  ];
+
+  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#64748b'];
+
+  // Read actual syllabus progress from ClassManagement localStorage
+  const getLiveSyllabusStatus = () => {
+    const className = currentUser?.assignedClass || '8';
+    const section = currentUser?.division || 'B';
+    const classKey = `${className}-${section}`;
+    const saved = localStorage.getItem(`syllabus-data-${classKey}`);
+    if (!saved) return null;
+    try {
+      const syllabusMap = JSON.parse(saved);
+      return Object.entries(syllabusMap).map(([key, chapters]) => {
+        const subjectName = key.replace(/-\d+$/, '');
+        const totalTopics = chapters.reduce((s, ch) => s + ch.subTopics.length, 0);
+        const completedTopics = chapters.reduce((s, ch) => s + ch.subTopics.filter(t => t.completed).length, 0);
+        const completionPercentage = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
+        return { subjectName, completionPercentage };
+      });
+    } catch { return null; }
+  };
+
+  const liveSyllabus = getLiveSyllabusStatus();
+  const syllabusData = liveSyllabus || effectiveData.syllabusStatus;
+
+  const averageSyllabusCompletion = syllabusData.length
+    ? Math.round(syllabusData.reduce((acc, item) => acc + (item.completionPercentage || 0), 0) / syllabusData.length)
+    : 0;
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Class {currentUser?.assignedClass}-{currentUser?.division} Analytics</h2>
-          <p className="text-gray-500 mt-1">Class Teacher Performance Overview</p>
+    <div className="relative space-y-8 overflow-hidden rounded-[28px] bg-gradient-to-br from-white via-slate-50 to-indigo-50/70 p-4 md:p-6 animate-in fade-in duration-500">
+      <div className="pointer-events-none absolute -left-16 top-16 h-44 w-44 rounded-full bg-sky-200/30 blur-3xl" />
+      <div className="pointer-events-none absolute right-0 top-10 h-56 w-56 rounded-full bg-violet-200/30 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-8 left-1/3 h-40 w-40 rounded-full bg-emerald-200/20 blur-3xl" />
+
+      <div className="relative overflow-hidden rounded-[24px] border border-white/70 bg-white/75 p-6 shadow-[0_16px_40px_rgba(148,163,184,0.16)] backdrop-blur-xl md:p-8">
+        <div className="absolute inset-x-6 bottom-0 h-1 rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500" />
+        <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-indigo-100/60 blur-3xl" />
+        <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+              <Sparkles className="h-3.5 w-3.5 text-violet-500" />
+              Premium analytics
+            </div>
+            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
+              Class {currentUser?.assignedClass}-{currentUser?.division} Analytics
+            </h2>
+            <p className="max-w-2xl text-sm font-medium text-slate-500 md:text-base">
+              A polished view of performance, attendance, subject strength, and intervention signals for your class.
+            </p>
+          </div>
+          {!analyticsData && (
+            <span className="inline-flex w-fit items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm">
+              <TrendingUp size={16} /> Data Mode: Simulated
+            </span>
+          )}
         </div>
-        {!analyticsData && (
-          <span className="px-4 py-1.5 bg-blue-50 text-blue-600 text-sm font-semibold rounded-full border border-blue-100 flex items-center gap-2">
-            <TrendingUp size={16} /> Data Mode: Simulated
-          </span>
-        )}
       </div>
 
       {/* Primary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[
-          { label: 'Overall Perf.', value: `${overallStats.averageClassPerformance.toFixed(1)}%`, icon: <TrendingUp className="text-blue-600" />, bg: 'bg-blue-50' },
-          { label: 'Attendance', value: `${overallStats.overallAttendance.toFixed(1)}%`, icon: <Users className="text-green-600" />, bg: 'bg-green-50' },
-          { label: 'Weak Students', value: interventionStudents.length, icon: <AlertTriangle className="text-red-600" />, bg: 'bg-red-50' }
-        ].map((stat, i) => (
-          <div key={i} className="bg-white p-6 rounded-2xl shadow-lg border border-gray-50 hover:shadow-xl transition-shadow cursor-default">
-            <div className="flex items-center gap-4">
-              <div className={`${stat.bg} p-4 rounded-xl`}>{stat.icon}</div>
-              <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{stat.label}</p>
-                <p className="text-2xl font-black text-gray-800">{stat.value}</p>
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+        {analyticsHighlights.map((stat, i) => {
+          const Icon = stat.icon;
+          return (
+            <div key={i} className={`group relative overflow-hidden rounded-[24px] border border-white/70 bg-white/80 p-6 shadow-[0_12px_32px_rgba(148,163,184,0.14)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(148,163,184,0.2)]`}>
+              <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${stat.accent}`} />
+              <div className={`absolute -right-6 -top-8 h-24 w-24 rounded-full bg-slate-100/70 blur-2xl transition-opacity duration-300 group-hover:opacity-70`} />
+              <div className="relative flex items-start gap-4">
+                <div className={`rounded-2xl bg-gradient-to-br ${stat.accent} p-3 text-white shadow-lg ${stat.glow}`}>
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">{stat.label}</p>
+                  <p className="mt-2 truncate text-2xl font-extrabold text-slate-900">{stat.value}</p>
+                  <p className="mt-1 text-sm font-medium text-slate-500">{stat.helper}</p>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
         {/* Grade Distribution */}
-        <div className="bg-white rounded-3xl shadow-xl border border-gray-50 p-8">
-          <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-            <Award className="text-yellow-500" /> Grade Spread
-          </h3>
+        <div className="rounded-[24px] border border-white/70 bg-white/80 p-6 shadow-[0_12px_32px_rgba(148,163,184,0.14)] backdrop-blur-xl md:p-8">
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <div>
+              <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <Award className="text-yellow-500" /> Grade Spread
+              </h3>
+              <p className="mt-1 text-sm text-slate-500">Distribution of grades across the class.</p>
+            </div>
+            <div className="rounded-full bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-500">
+              Live snapshot
+            </div>
+          </div>
           <div className="h-[300px] flex justify-center items-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -253,38 +328,37 @@ const PerformanceAnalytics = ({ currentUser }) => {
           </div>
         </div>
 
-        {/* Weekly Compliance & Attendance Trends */}
-        <div className="bg-white rounded-3xl shadow-xl border border-gray-50 p-8">
-          <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-            <TrendingUp size={20} className="text-green-500" /> Weekly Trends
-          </h3>
+        {/* Weekly Trends */}
+        <div className="rounded-[24px] border border-white/70 bg-white/80 p-6 shadow-[0_12px_32px_rgba(148,163,184,0.14)] backdrop-blur-xl md:p-8">
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <div>
+              <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <TrendingUp size={20} className="text-green-500" /> Weekly Trends
+              </h3>
+              <p className="mt-1 text-sm text-slate-500">Attendance signal with syllabus and subject health.</p>
+            </div>
+            <div className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
+              Avg attendance {weeklyAttendanceAverage}%
+            </div>
+          </div>
           <div className="flex items-center justify-center">
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={320}>
               <RadialBarChart
                 cx="50%"
                 cy="50%"
-                innerRadius="20%"
+                innerRadius="18%"
                 outerRadius="90%"
-                barSize={14}
-                data={(() => {
-                  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                  const colors = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'];
-                  // Average each metric across all week days
-                  const trend = effectiveData.weeklyAttendanceTrend || [];
-                  const avgAttn = trend.length ? Math.round(trend.reduce((s, d) => s + (d.percentage || 0), 0) / trend.length) : 0;
-                  const avgUnif = trend.length ? Math.round(trend.reduce((s, d) => s + (d.uniform || 0), 0) / trend.length) : 0;
-                  const avgIcard = trend.length ? Math.round(trend.reduce((s, d) => s + (d.icard || 0), 0) / trend.length) : 0;
-                  return [
-                    { name: 'Icard', value: avgIcard, fill: '#f59e0b' },
-                    { name: 'Uniform', value: avgUnif, fill: '#3b82f6' },
-                    { name: 'Attendance', value: avgAttn, fill: '#10b981' },
-                  ];
-                })()}
+                barSize={16}
+                data={[
+                  { name: 'Attendance', value: weeklyAttendanceAverage, fill: '#10b981' },
+                  { name: 'Syllabus', value: averageSyllabusCompletion, fill: '#3b82f6' },
+                  { name: 'Subject Avg', value: averageSubjectPerformance, fill: '#8b5cf6' },
+                ]}
                 startAngle={210}
                 endAngle={-30}
               >
                 <RadialBar
-                  background={{ fill: '#f3f4f6' }}
+                  background={{ fill: '#eef2ff' }}
                   dataKey="value"
                   cornerRadius={12}
                 />
@@ -308,12 +382,20 @@ const PerformanceAnalytics = ({ currentUser }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
         {/* Subject Performance Index */}
-        <div className="bg-white rounded-3xl shadow-xl border border-gray-50 p-8">
-          <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-            <BarChart2 size={20} className="text-blue-500" /> Subject Performance Index
-          </h3>
+        <div className="rounded-[24px] border border-white/70 bg-white/80 p-6 shadow-[0_12px_32px_rgba(148,163,184,0.14)] backdrop-blur-xl md:p-8">
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <div>
+              <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <BarChart2 size={20} className="text-blue-500" /> Subject Performance Index
+              </h3>
+              <p className="mt-1 text-sm text-slate-500">Interactive subject breakdown with hover focus.</p>
+            </div>
+            <div className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700">
+              {effectiveData.subjectPerformance.length} subjects
+            </div>
+          </div>
           <div className="flex flex-col items-center">
             {/* Donut Chart */}
             <div className="relative w-64 h-64 mb-6" ref={chartRef}>
@@ -422,15 +504,23 @@ const PerformanceAnalytics = ({ currentUser }) => {
         {/* Academic Champions + Intervention Tracker */}
         <div className="flex flex-col gap-8">
           {/* Top Performers */}
-          <div className="bg-gradient-to-br from-indigo-50 to-white rounded-3xl shadow-xl border border-indigo-100 p-8 flex-1">
-            <h3 className="text-xl font-bold text-indigo-900 mb-6 flex items-center gap-2">
-              <Award className="text-yellow-500" /> Academic Champions
-            </h3>
+          <div className="rounded-[24px] border border-indigo-100/70 bg-gradient-to-br from-indigo-50 via-white to-white p-6 shadow-[0_12px_32px_rgba(99,102,241,0.12)] backdrop-blur-xl md:p-8 flex-1">
+            <div className="mb-6 flex items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-indigo-900 mb-1 flex items-center gap-2">
+                  <Award className="text-yellow-500" /> Academic Champions
+                </h3>
+                <p className="text-sm text-indigo-700/70">Students leading the class performance.</p>
+              </div>
+              <div className="rounded-full bg-white/80 px-3 py-1.5 text-xs font-semibold text-indigo-700 shadow-sm">
+                Top performers
+              </div>
+            </div>
             <div className="space-y-4">
               {effectiveData.topPerformers.map((student, i) => (
-                <div key={i} className="flex items-center justify-between bg-white p-4 rounded-2xl border border-indigo-100 shadow-sm hover:translate-x-2 transition-transform">
+                <div key={i} className="flex items-center justify-between rounded-2xl border border-indigo-100 bg-white/90 p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                   <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 bg-indigo-600 text-white rounded-full flex justify-center items-center font-bold">
+                    <div className="h-10 w-10 bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-full flex justify-center items-center font-bold shadow-md">
                       {i + 1}
                     </div>
                     <div>
@@ -448,15 +538,23 @@ const PerformanceAnalytics = ({ currentUser }) => {
           </div>
 
           {/* Intervention Tracker */}
-          <div className="bg-gradient-to-br from-red-50 to-white rounded-3xl shadow-xl border border-red-100 p-8 flex-1">
-            <h3 className="text-xl font-bold text-red-900 mb-6 flex items-center gap-2">
-              <AlertTriangle className="text-red-500" /> Intervention Tracker
-            </h3>
+          <div className="rounded-[24px] border border-rose-100/70 bg-gradient-to-br from-rose-50 via-white to-white p-6 shadow-[0_12px_32px_rgba(244,63,94,0.10)] backdrop-blur-xl md:p-8 flex-1">
+            <div className="mb-6 flex items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-rose-900 mb-1 flex items-center gap-2">
+                  <AlertTriangle className="text-rose-500" /> Intervention Tracker
+                </h3>
+                <p className="text-sm text-rose-700/70">Students who may need targeted support.</p>
+              </div>
+              <div className="rounded-full bg-white/80 px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm">
+                {interventionStudents.length} alerts
+              </div>
+            </div>
             <div className="space-y-4">
               {interventionStudents.map((student, i) => (
-                <div key={i} className="flex items-center justify-between bg-white p-4 rounded-2xl border border-red-100 shadow-sm hover:translate-x-2 transition-transform">
+                <div key={i} className="flex items-center justify-between rounded-2xl border border-red-100 bg-white/90 p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                   <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 bg-red-100 text-red-600 rounded-full flex justify-center items-center font-bold">
+                    <div className="h-10 w-10 bg-gradient-to-br from-red-100 to-rose-100 text-red-600 rounded-full flex justify-center items-center font-bold">
                       !
                     </div>
                     <div>
@@ -469,7 +567,7 @@ const PerformanceAnalytics = ({ currentUser }) => {
                       <p className="text-lg font-black text-red-600">{student.averagePercentage}%</p>
                       <p className="text-[10px] font-bold text-red-300 uppercase">Avg Score</p>
                     </div>
-                    <button className="p-2 bg-red-600 text-white rounded-xl hover:bg-red-700 shadow-md">
+                    <button className="p-2 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-xl hover:from-red-700 hover:to-rose-700 shadow-md transition-all duration-300">
                       <MessageCircle size={18} />
                     </button>
                   </div>

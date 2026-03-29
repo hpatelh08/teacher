@@ -6,6 +6,16 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
 const AttendanceManagement = ({ currentUser }) => {
+  const createDefaultAttendanceEntry = (status = 'present') => ({
+    status,
+    applicationStatus: status === 'absent' ? 'not_received' : '',
+    applicationReasonType: '',
+    applicationReasonCustom: '',
+    notifyParent: false,
+    applicationUpdatedByTeacher: false,
+    remarks: ''
+  });
+
   const [classes, setClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -56,12 +66,7 @@ const AttendanceManagement = ({ currentUser }) => {
       // Reset to default for new date
       const initialAttendance = {};
       students.forEach(student => {
-        initialAttendance[student._id] = {
-          status: 'present',
-          uniformStatus: 'yes',
-          idCardStatus: 'yes',
-          remarks: ''
-        };
+        initialAttendance[student._id] = createDefaultAttendanceEntry();
       });
       setAttendanceData(initialAttendance);
     }
@@ -152,12 +157,7 @@ const AttendanceManagement = ({ currentUser }) => {
         } catch {
           const initialAttendance = {};
           mockStudentsData.forEach(student => {
-            initialAttendance[student._id] = {
-              status: 'present',
-              uniformStatus: 'yes',
-              idCardStatus: 'yes',
-              remarks: ''
-            };
+            initialAttendance[student._id] = createDefaultAttendanceEntry();
           });
           setAttendanceData(initialAttendance);
         }
@@ -165,12 +165,7 @@ const AttendanceManagement = ({ currentUser }) => {
         // Initialize attendance data default to present
         const initialAttendance = {};
         mockStudentsData.forEach(student => {
-          initialAttendance[student._id] = {
-            status: 'present',
-            uniformStatus: 'yes',
-            idCardStatus: 'yes',
-            remarks: ''
-          };
+          initialAttendance[student._id] = createDefaultAttendanceEntry();
         });
         setAttendanceData(initialAttendance);
       }
@@ -184,7 +179,25 @@ const AttendanceManagement = ({ currentUser }) => {
   const handleStatusChange = (studentId, status) => {
     setAttendanceData(prev => ({
       ...prev,
-      [studentId]: { ...prev[studentId], status }
+      [studentId]: status === 'absent'
+        ? {
+          ...(prev[studentId] || createDefaultAttendanceEntry()),
+          status,
+          applicationStatus: prev[studentId]?.status === 'absent' ? (prev[studentId]?.applicationStatus || 'not_received') : 'not_received',
+          applicationReasonType: prev[studentId]?.status === 'absent' ? (prev[studentId]?.applicationReasonType || '') : '',
+          applicationReasonCustom: prev[studentId]?.status === 'absent' ? (prev[studentId]?.applicationReasonCustom || '') : '',
+          notifyParent: prev[studentId]?.status === 'absent' ? (prev[studentId]?.notifyParent ?? false) : false,
+          applicationUpdatedByTeacher: prev[studentId]?.status === 'absent' ? (prev[studentId]?.applicationUpdatedByTeacher || false) : false
+        }
+        : {
+          ...(prev[studentId] || createDefaultAttendanceEntry()),
+          status,
+          applicationStatus: '',
+          applicationReasonType: '',
+          applicationReasonCustom: '',
+          notifyParent: false,
+          applicationUpdatedByTeacher: false
+        }
     }));
   };
 
@@ -195,17 +208,60 @@ const AttendanceManagement = ({ currentUser }) => {
     }));
   };
 
-  const handleUniformChange = (studentId, uniformStatus) => {
+  const getApplicationReasonLabel = (studentData) => {
+    if (!studentData) return '-';
+    if (studentData.applicationReasonType === 'Other') {
+      return studentData.applicationReasonCustom || 'Other';
+    }
+    return studentData.applicationReasonType || '-';
+  };
+
+  const handleApplicationStatusChange = (studentId, applicationStatus) => {
     setAttendanceData(prev => ({
       ...prev,
-      [studentId]: { ...prev[studentId], uniformStatus }
+      [studentId]: {
+        ...prev[studentId],
+        applicationStatus,
+        applicationReasonType: applicationStatus === 'received' ? (prev[studentId]?.applicationReasonType || 'Sick') : '',
+        applicationReasonCustom: applicationStatus === 'received' && prev[studentId]?.applicationReasonType === 'Other'
+          ? (prev[studentId]?.applicationReasonCustom || '')
+          : '',
+        notifyParent: applicationStatus === 'received' ? (prev[studentId]?.notifyParent ?? false) : false,
+        applicationUpdatedByTeacher: applicationStatus === 'received' ? (prev[studentId]?.applicationUpdatedByTeacher || false) : false
+      }
     }));
   };
 
-  const handleIdCardChange = (studentId, idCardStatus) => {
+  const handleApplicationReasonTypeChange = (studentId, applicationReasonType) => {
     setAttendanceData(prev => ({
       ...prev,
-      [studentId]: { ...prev[studentId], idCardStatus }
+      [studentId]: {
+        ...prev[studentId],
+        applicationReasonType,
+        applicationUpdatedByTeacher: true,
+        applicationReasonCustom: applicationReasonType === 'Other' ? (prev[studentId]?.applicationReasonCustom || '') : ''
+      }
+    }));
+  };
+
+  const handleApplicationReasonCustomChange = (studentId, applicationReasonCustom) => {
+    setAttendanceData(prev => ({
+      ...prev,
+      [studentId]: {
+        ...prev[studentId],
+        applicationReasonCustom,
+        applicationUpdatedByTeacher: true
+      }
+    }));
+  };
+
+  const handleNotifyParentChange = (studentId, notifyParent) => {
+    setAttendanceData(prev => ({
+      ...prev,
+      [studentId]: {
+        ...prev[studentId],
+        notifyParent
+      }
     }));
   };
 
@@ -217,28 +273,29 @@ const AttendanceManagement = ({ currentUser }) => {
       const attendanceDataArray = Object.keys(attendanceData).map(studentId => ({
         studentId,
         status: attendanceData[studentId].status,
-        uniformStatus: attendanceData[studentId].uniformStatus || 'yes',
-        idCardStatus: attendanceData[studentId].idCardStatus || 'yes',
+        applicationStatus: attendanceData[studentId].applicationStatus || '',
+        applicationReasonType: attendanceData[studentId].applicationReasonType || '',
+        applicationReasonCustom: attendanceData[studentId].applicationReasonCustom || '',
+        notifyParent: attendanceData[studentId].notifyParent || false,
+        applicationUpdatedByTeacher: attendanceData[studentId].applicationUpdatedByTeacher || false,
         remarks: attendanceData[studentId].remarks
       }));
 
       // Save attendance summary to localStorage for Dashboard (always runs)
       const presentCount = Object.values(attendanceData).filter(a => a.status === 'present').length;
       const absentCount = Object.values(attendanceData).filter(a => a.status === 'absent').length;
-      const uniformYes = Object.values(attendanceData).filter(a => a.uniformStatus === 'yes').length;
-      const uniformNo = Object.values(attendanceData).filter(a => a.uniformStatus === 'no').length;
-      const idCardYes = Object.values(attendanceData).filter(a => a.idCardStatus === 'yes').length;
-      const idCardNo = Object.values(attendanceData).filter(a => a.idCardStatus === 'no').length;
+      const lateCount = Object.values(attendanceData).filter(a => a.status === 'late').length;
+      const applicationReceivedCount = Object.values(attendanceData).filter(a => a.applicationStatus === 'received').length;
+      const applicationNotReceivedCount = Object.values(attendanceData).filter(a => a.applicationStatus === 'not_received').length;
       const totalCount = Object.keys(attendanceData).length;
       const summary = {
         date: selectedDate,
         present: presentCount,
         absent: absentCount,
+        late: lateCount,
         total: totalCount,
-        uniformYes,
-        uniformNo,
-        idCardYes,
-        idCardNo,
+        applicationReceivedCount,
+        applicationNotReceivedCount,
         updatedAt: new Date().toISOString()
       };
       localStorage.setItem('attendance-summary', JSON.stringify(summary));
@@ -253,8 +310,11 @@ const AttendanceManagement = ({ currentUser }) => {
           studentId,
           studentName: student?.name || '',
           status: attendanceData[studentId].status,
-          uniformStatus: attendanceData[studentId].uniformStatus || 'yes',
-          idCardStatus: attendanceData[studentId].idCardStatus || 'yes',
+          applicationStatus: attendanceData[studentId].applicationStatus || '',
+          applicationReasonType: attendanceData[studentId].applicationReasonType || '',
+          applicationReasonCustom: attendanceData[studentId].applicationReasonCustom || '',
+          notifyParent: attendanceData[studentId].notifyParent || false,
+          applicationUpdatedByTeacher: attendanceData[studentId].applicationUpdatedByTeacher || false,
           remarks: attendanceData[studentId].remarks || ''
         };
       });
@@ -308,12 +368,19 @@ const AttendanceManagement = ({ currentUser }) => {
         doc.text(`Date Range: ${start} to ${end}`, 14, 40);
 
         const tableData = [
-          [selectedDate, attendanceData[student._id]?.status || 'present', attendanceData[student._id]?.uniformStatus || 'yes', attendanceData[student._id]?.idCardStatus || 'yes', attendanceData[student._id]?.remarks || 'N/A'],
+          [
+            selectedDate,
+            attendanceData[student._id]?.status || 'present',
+            attendanceData[student._id]?.applicationStatus || 'not_received',
+            attendanceData[student._id]?.applicationReasonType || '-',
+            getApplicationReasonLabel(attendanceData[student._id]),
+            attendanceData[student._id]?.remarks || 'N/A'
+          ],
         ];
 
         autoTable(doc, {
           startY: 50,
-          head: [['Date', 'Status', 'Uniform', 'ID Card', 'Remarks']],
+          head: [['Date', 'Status', 'Application Status', 'Reason Type', 'Custom Reason', 'Remarks']],
           body: tableData,
         });
 
@@ -327,14 +394,14 @@ const AttendanceManagement = ({ currentUser }) => {
           student.studentId,
           student.name,
           attendanceData[student._id]?.status || 'present',
-          attendanceData[student._id]?.uniformStatus || 'yes',
-          attendanceData[student._id]?.idCardStatus || 'yes',
+          attendanceData[student._id]?.applicationStatus || 'not_received',
+          getApplicationReasonLabel(attendanceData[student._id]),
           attendanceData[student._id]?.remarks || 'N/A'
         ]);
 
         autoTable(doc, {
           startY: 50,
-          head: [['Student ID', 'Name', 'Status', 'Uniform', 'ID Card', 'Remarks']],
+          head: [['Student ID', 'Name', 'Status', 'Application Status', 'Reason Type', 'Remarks']],
           body: tableData,
         });
 
@@ -377,14 +444,14 @@ const AttendanceManagement = ({ currentUser }) => {
     }
 
     const wsData = [
-      ["Student ID", "Name", "Current Date", "Status", "Uniform", "I-Card"],
+      ["Student ID", "Name", "Current Date", "Status", "Application Status", "Reason"],
       ...dataToExport.map(student => [
         student.studentId,
         student.name,
         selectedDate,
         attendanceData[student._id]?.status || 'present',
-        attendanceData[student._id]?.uniformStatus || 'yes',
-        attendanceData[student._id]?.idCardStatus || 'yes'
+        attendanceData[student._id]?.applicationStatus || 'not_received',
+        getApplicationReasonLabel(attendanceData[student._id])
       ])
     ];
 
@@ -411,22 +478,15 @@ const AttendanceManagement = ({ currentUser }) => {
     const updatedAttendance = { ...attendanceData };
     Object.keys(updatedAttendance).forEach(studentId => {
       updatedAttendance[studentId].status = action;
-    });
-    setAttendanceData(updatedAttendance);
-  };
-
-  const handleBulkUniformAction = (uniformStatus) => {
-    const updatedAttendance = { ...attendanceData };
-    Object.keys(updatedAttendance).forEach((studentId) => {
-      updatedAttendance[studentId].uniformStatus = uniformStatus;
-    });
-    setAttendanceData(updatedAttendance);
-  };
-
-  const handleBulkIdCardAction = (idCardStatus) => {
-    const updatedAttendance = { ...attendanceData };
-    Object.keys(updatedAttendance).forEach((studentId) => {
-      updatedAttendance[studentId].idCardStatus = idCardStatus;
+      if (action === 'absent') {
+        updatedAttendance[studentId].applicationStatus = updatedAttendance[studentId].applicationStatus || 'not_received';
+      } else {
+        updatedAttendance[studentId].applicationStatus = '';
+        updatedAttendance[studentId].applicationReasonType = '';
+        updatedAttendance[studentId].applicationReasonCustom = '';
+        updatedAttendance[studentId].notifyParent = false;
+        updatedAttendance[studentId].applicationUpdatedByTeacher = false;
+      }
     });
     setAttendanceData(updatedAttendance);
   };
@@ -438,13 +498,13 @@ const AttendanceManagement = ({ currentUser }) => {
 
       // Get absent students
       const absentStudents = Object.keys(attendanceData).filter(
-        studentId => attendanceData[studentId].status === 'absent'
+        studentId => attendanceData[studentId].status === 'absent' && attendanceData[studentId].notifyParent
       );
 
       if (absentStudents.length > 0) {
         await axios.post('http://localhost:5000/api/teacher/send-sms', {
           studentIds: absentStudents,
-          message: `Your child was absent on ${selectedDate}. Please contact school for more information.`
+          message: 'Your child is marked absent today. Please submit the reason.'
         }, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -455,12 +515,36 @@ const AttendanceManagement = ({ currentUser }) => {
         setSuccess(`${absentStudents.length} SMS notifications sent successfully!`);
         setTimeout(() => setSuccess(''), 3000);
       } else {
-        setSuccess('No absent students to notify.');
+        setSuccess('No parent notifications selected.');
         setTimeout(() => setSuccess(''), 3000);
       }
       setLoading(false);
     } catch (error) {
       console.error('Error sending SMS notifications:', error);
+      setLoading(false);
+    }
+  };
+
+  const handleSendParentSMS = async (studentId) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+
+      await axios.post('http://localhost:5000/api/teacher/send-sms', {
+        studentIds: [studentId],
+        message: 'Your child is marked absent today. Please submit the reason.'
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      setSuccess('Parent notification sent successfully!');
+      setTimeout(() => setSuccess(''), 3000);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error sending parent notification:', error);
       setLoading(false);
     }
   };
@@ -477,7 +561,7 @@ const AttendanceManagement = ({ currentUser }) => {
             className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-2.5 rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5 font-semibold"
           >
             <MessageSquare className="h-4 w-4" />
-            Send SMS
+            Notify Parents
           </button>
         </div>
       </div>
@@ -532,18 +616,6 @@ const AttendanceManagement = ({ currentUser }) => {
                 >
                   Mark All Present
                 </button>
-                <button
-                  onClick={() => handleBulkUniformAction('yes')}
-                  className="px-6 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-lg shadow-sm transition-colors"
-                >
-                  Mark All Uniform
-                </button>
-                <button
-                  onClick={() => handleBulkIdCardAction('yes')}
-                  className="px-6 py-2.5 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg shadow-sm transition-colors"
-                >
-                  Mark All I-Card
-                </button>
               </div>
 
               {students.length > 0 && (
@@ -554,6 +626,9 @@ const AttendanceManagement = ({ currentUser }) => {
                       <span className="px-4 py-1.5 bg-green-100 text-green-700 font-semibold rounded-full text-sm">
                         Present: {Object.values(attendanceData).filter(a => a.status === 'present').length}
                       </span>
+                      <span className="px-4 py-1.5 bg-amber-100 text-amber-700 font-semibold rounded-full text-sm">
+                        Late: {Object.values(attendanceData).filter(a => a.status === 'late').length}
+                      </span>
                       <span className="px-4 py-1.5 bg-red-100 text-red-700 font-semibold rounded-full text-sm">
                         Absent: {Object.values(attendanceData).filter(a => a.status === 'absent').length}
                       </span>
@@ -561,117 +636,193 @@ const AttendanceManagement = ({ currentUser }) => {
                   </div>
 
                   <div className="border rounded-xl overflow-hidden shadow-sm bg-white mb-6">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="bg-gray-50 border-b">
-                          <th className="px-6 py-4 font-semibold text-gray-600">Student ID</th>
-                          <th className="px-6 py-4 font-semibold text-gray-600">Student Name</th>
-                          <th className="px-6 py-4 font-semibold text-gray-600">Attendance Status</th>
-                          <th className="px-6 py-4 font-semibold text-gray-600">Uniform</th>
-                          <th className="px-6 py-4 font-semibold text-gray-600">I-Card</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {students.map(student => {
-                          const isAbsent = attendanceData[student._id]?.status === 'absent';
-                          return (
-                          <tr key={student._id} className={`border-b last:border-b-0 transition-colors ${isAbsent ? 'bg-red-50' : 'hover:bg-gray-50'}`}>
-                            <td className="px-6 py-4 text-blue-600 font-medium">{student.studentId}</td>
-                            <td className="px-6 py-4 font-semibold text-gray-800">{student.name}</td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-3">
-                                <label className="flex items-center gap-2 cursor-pointer group">
-                                  <input
-                                    type="radio"
-                                    name={`status-${student._id}`}
-                                    value="present"
-                                    checked={attendanceData[student._id]?.status === 'present'}
-                                    onChange={() => handleStatusChange(student._id, 'present')}
-                                    className="w-5 h-5 text-green-500 bg-gray-100 border-gray-300 focus:ring-green-500 cursor-pointer"
-                                  />
-                                  <span className={`font-medium ${attendanceData[student._id]?.status === 'present' ? 'text-green-600' : 'text-gray-500 group-hover:text-gray-700'}`}>Present</span>
-                                </label>
-
-                                <label className="flex items-center gap-2 cursor-pointer group">
-                                  <input
-                                    type="radio"
-                                    name={`status-${student._id}`}
-                                    value="absent"
-                                    checked={isAbsent}
-                                    onChange={() => handleStatusChange(student._id, 'absent')}
-                                    className="w-5 h-5 accent-red-600 cursor-pointer"
-                                  />
-                                  <span className={`font-semibold ${isAbsent ? 'text-white bg-red-500 px-2 py-0.5 rounded-full text-xs' : 'text-gray-500 group-hover:text-gray-700'}`}>Absent</span>
-                                </label>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              {isAbsent ? (
-                                <span className="text-xs text-red-400 font-medium italic">N/A</span>
-                              ) : (
-                              <div className="flex items-center gap-6">
-                                <label className="flex items-center gap-2 cursor-pointer group">
-                                  <input
-                                    type="radio"
-                                    name={`uniform-${student._id}`}
-                                    value="yes"
-                                    checked={(attendanceData[student._id]?.uniformStatus || 'yes') === 'yes'}
-                                    onChange={() => handleUniformChange(student._id, 'yes')}
-                                    className="w-5 h-5 text-green-500 bg-gray-100 border-gray-300 focus:ring-green-500 cursor-pointer"
-                                  />
-                                  <span className={`font-medium ${(attendanceData[student._id]?.uniformStatus || 'yes') === 'yes' ? 'text-green-600' : 'text-gray-500 group-hover:text-gray-700'}`}>Yes</span>
-                                </label>
-
-                                <label className="flex items-center gap-2 cursor-pointer group">
-                                  <input
-                                    type="radio"
-                                    name={`uniform-${student._id}`}
-                                    value="no"
-                                    checked={attendanceData[student._id]?.uniformStatus === 'no'}
-                                    onChange={() => handleUniformChange(student._id, 'no')}
-                                    className="w-5 h-5 text-red-500 bg-gray-100 border-gray-300 focus:ring-red-500 cursor-pointer"
-                                  />
-                                  <span className={`font-medium ${attendanceData[student._id]?.uniformStatus === 'no' ? 'text-red-600' : 'text-gray-500 group-hover:text-gray-700'}`}>No</span>
-                                </label>
-                              </div>
-                              )}
-                            </td>
-                            <td className="px-6 py-4">
-                              {isAbsent ? (
-                                <span className="text-xs text-red-400 font-medium italic">N/A</span>
-                              ) : (
-                              <div className="flex items-center gap-6">
-                                <label className="flex items-center gap-2 cursor-pointer group">
-                                  <input
-                                    type="radio"
-                                    name={`idcard-${student._id}`}
-                                    value="yes"
-                                    checked={(attendanceData[student._id]?.idCardStatus || 'yes') === 'yes'}
-                                    onChange={() => handleIdCardChange(student._id, 'yes')}
-                                    className="w-5 h-5 text-green-500 bg-gray-100 border-gray-300 focus:ring-green-500 cursor-pointer"
-                                  />
-                                  <span className={`font-medium ${(attendanceData[student._id]?.idCardStatus || 'yes') === 'yes' ? 'text-green-600' : 'text-gray-500 group-hover:text-gray-700'}`}>Yes</span>
-                                </label>
-
-                                <label className="flex items-center gap-2 cursor-pointer group">
-                                  <input
-                                    type="radio"
-                                    name={`idcard-${student._id}`}
-                                    value="no"
-                                    checked={attendanceData[student._id]?.idCardStatus === 'no'}
-                                    onChange={() => handleIdCardChange(student._id, 'no')}
-                                    className="w-5 h-5 text-red-500 bg-gray-100 border-gray-300 focus:ring-red-500 cursor-pointer"
-                                  />
-                                  <span className={`font-medium ${attendanceData[student._id]?.idCardStatus === 'no' ? 'text-red-600' : 'text-gray-500 group-hover:text-gray-700'}`}>No</span>
-                                </label>
-                              </div>
-                              )}
-                            </td>
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[1280px] text-left border-collapse">
+                        <thead>
+                          <tr className="bg-gray-50 border-b">
+                            <th className="px-6 py-4 font-semibold text-gray-600">Student ID</th>
+                            <th className="px-6 py-4 font-semibold text-gray-600">Student Name</th>
+                            <th className="px-6 py-4 font-semibold text-gray-600">Attendance Status</th>
+                            <th className="px-6 py-4 font-semibold text-gray-600">Application Status</th>
+                            <th className="px-6 py-4 font-semibold text-gray-600">Reason</th>
+                            <th className="px-6 py-4 font-semibold text-gray-600">Notify Parent</th>
+                            <th className="px-6 py-4 font-semibold text-gray-600">Actions</th>
                           </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {students.map(student => {
+                            const row = attendanceData[student._id] || createDefaultAttendanceEntry();
+                            const isAbsent = row.status === 'absent';
+                            const isLate = row.status === 'late';
+                            const applicationStatus = isAbsent ? (row.applicationStatus || 'not_received') : '';
+                            const shouldShowReason = isAbsent && applicationStatus === 'received';
+                            const shouldShowNotify = isAbsent && applicationStatus === 'not_received';
+                            return (
+                              <tr
+                                key={student._id}
+                                className={`border-b last:border-b-0 transition-all duration-300 ${
+                                  isAbsent ? 'bg-red-50/70' : isLate ? 'bg-amber-50/70' : 'hover:bg-gray-50'
+                                }`}
+                              >
+                                <td className="px-6 py-4 text-blue-600 font-medium">{student.studentId}</td>
+                                <td className="px-6 py-4 font-semibold text-gray-800">{student.name}</td>
+                                <td className="px-6 py-4">
+                                  <div className="flex flex-wrap items-center gap-3">
+                                    <label className="flex items-center gap-2 cursor-pointer group">
+                                      <input
+                                        type="radio"
+                                        name={`status-${student._id}`}
+                                        value="present"
+                                        checked={row.status === 'present'}
+                                        onChange={() => handleStatusChange(student._id, 'present')}
+                                        className="w-5 h-5 text-green-500 bg-gray-100 border-gray-300 focus:ring-green-500 cursor-pointer"
+                                      />
+                                      <span className={`font-medium ${row.status === 'present' ? 'text-green-600' : 'text-gray-500 group-hover:text-gray-700'}`}>Present</span>
+                                    </label>
+
+                                    <label className="flex items-center gap-2 cursor-pointer group">
+                                      <input
+                                        type="radio"
+                                        name={`status-${student._id}`}
+                                        value="late"
+                                        checked={isLate}
+                                        onChange={() => handleStatusChange(student._id, 'late')}
+                                        className="w-5 h-5 text-amber-500 bg-gray-100 border-gray-300 focus:ring-amber-500 cursor-pointer"
+                                      />
+                                      <span className={`font-medium ${isLate ? 'text-amber-600' : 'text-gray-500 group-hover:text-gray-700'}`}>Late</span>
+                                    </label>
+
+                                    <label className="flex items-center gap-2 cursor-pointer group">
+                                      <input
+                                        type="radio"
+                                        name={`status-${student._id}`}
+                                        value="absent"
+                                        checked={isAbsent}
+                                        onChange={() => handleStatusChange(student._id, 'absent')}
+                                        className="w-5 h-5 accent-red-600 cursor-pointer"
+                                      />
+                                      <span className={`font-semibold ${isAbsent ? 'text-white bg-red-500 px-2 py-0.5 rounded-full text-xs' : 'text-gray-500 group-hover:text-gray-700'}`}>Absent</span>
+                                    </label>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                  {isAbsent ? (
+                                    <div className={`rounded-2xl border px-4 py-3 transition-all duration-300 ${applicationStatus === 'received' ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50'}`}>
+                                      <div className="flex flex-wrap items-center gap-4">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                          <input
+                                            type="radio"
+                                            name={`application-${student._id}`}
+                                            checked={applicationStatus === 'received'}
+                                            onChange={() => handleApplicationStatusChange(student._id, 'received')}
+                                            className="w-4 h-4 text-emerald-500 focus:ring-emerald-500"
+                                          />
+                                          <span className={`text-sm font-semibold ${applicationStatus === 'received' ? 'text-emerald-700' : 'text-gray-600'}`}>Received</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                          <input
+                                            type="radio"
+                                            name={`application-${student._id}`}
+                                            checked={applicationStatus === 'not_received'}
+                                            onChange={() => handleApplicationStatusChange(student._id, 'not_received')}
+                                            className="w-4 h-4 text-red-500 focus:ring-red-500"
+                                          />
+                                          <span className={`text-sm font-semibold ${applicationStatus === 'not_received' ? 'text-red-700' : 'text-gray-600'}`}>Not Received</span>
+                                        </label>
+                                      </div>
+                                      {applicationStatus === 'received' && (
+                                        <p className="mt-2 text-xs text-emerald-700">
+                                          Parent application received
+                                          {row.applicationUpdatedByTeacher ? ' - Updated by Teacher' : ''}
+                                        </p>
+                                      )}
+                                      {applicationStatus === 'not_received' && (
+                                        <p className="mt-2 text-xs text-red-600">
+                                          Parent application not received
+                                        </p>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${row.status === 'present' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                      {row.status === 'present' ? 'Present' : 'Late'}
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="px-6 py-4">
+                                  {shouldShowReason ? (
+                                    <div className="space-y-2">
+                                      <select
+                                        value={row.applicationReasonType || 'Sick'}
+                                        onChange={(e) => handleApplicationReasonTypeChange(student._id, e.target.value)}
+                                        className="w-full rounded-xl border border-emerald-200 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm outline-none transition-all focus:border-emerald-400 focus:ring-2 focus:ring-emerald-200"
+                                      >
+                                        <option value="Sick">Sick</option>
+                                        <option value="Family Function">Family Function</option>
+                                        <option value="Emergency">Emergency</option>
+                                        <option value="Other">Other</option>
+                                      </select>
+                                      {row.applicationReasonType === 'Other' && (
+                                        <input
+                                          type="text"
+                                          value={row.applicationReasonCustom || ''}
+                                          onChange={(e) => handleApplicationReasonCustomChange(student._id, e.target.value)}
+                                          placeholder="Type custom reason"
+                                          className="w-full rounded-xl border border-emerald-200 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm outline-none transition-all focus:border-emerald-400 focus:ring-2 focus:ring-emerald-200"
+                                        />
+                                      )}
+                                      <p className={`text-xs ${row.applicationUpdatedByTeacher ? 'text-blue-600' : 'text-gray-500'}`}>
+                                        {row.applicationUpdatedByTeacher ? 'Updated by Teacher' : 'Auto-filled from parent application'}
+                                      </p>
+                                    </div>
+                                  ) : isAbsent ? (
+                                    <span className="text-sm text-red-500 italic">Waiting for application</span>
+                                  ) : (
+                                    <span className="text-sm text-gray-400">-</span>
+                                  )}
+                                </td>
+                                <td className="px-6 py-4">
+                                  {shouldShowNotify ? (
+                                    <div className="space-y-2">
+                                      <label className="inline-flex items-center gap-2 cursor-pointer rounded-xl border border-red-200 bg-red-50 px-3 py-2">
+                                        <input
+                                          type="checkbox"
+                                          checked={row.notifyParent || false}
+                                          onChange={(e) => handleNotifyParentChange(student._id, e.target.checked)}
+                                          className="h-4 w-4 rounded border-red-300 text-red-500 focus:ring-red-400"
+                                        />
+                                        <span className="text-sm font-semibold text-red-700">Notify Parent</span>
+                                      </label>
+                                      {row.notifyParent && (
+                                        <div className="rounded-xl border border-red-200 bg-white px-3 py-2 text-xs text-red-600 shadow-sm">
+                                          Your child is marked absent today. Please submit the reason.
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <span className="text-sm text-gray-400">-</span>
+                                  )}
+                                </td>
+                                <td className="px-6 py-4">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSendParentSMS(student._id)}
+                                    disabled={!isAbsent || !row.notifyParent || loading}
+                                    className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition-all duration-300 ${
+                                      isAbsent && row.notifyParent
+                                        ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 hover:-translate-y-0.5'
+                                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                    }`}
+                                  >
+                                    <MessageSquare className="h-3.5 w-3.5" />
+                                    SMS
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
 
                   <div className="flex justify-end">

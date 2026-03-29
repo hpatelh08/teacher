@@ -168,7 +168,7 @@ const MarksManagement = ({ currentUser }) => {
       const grade = calculateGrade(avg);
 
       return [
-        `#${String(index + 1).padStart(2, '0')}`,
+        `${String(index + 1).padStart(2, '0')}`,
         student.name,
         ...subjectList.map(sub => studentMarks[sub._id] || '-'),
         total,
@@ -268,7 +268,7 @@ const MarksManagement = ({ currentUser }) => {
                   return (
                     <tr key={student._id} className="hover:bg-gray-50/80 transition-colors group">
                       <td className="px-6 py-4 font-mono text-blue-600 text-sm sticky left-0 bg-white group-hover:bg-gray-50">
-                        #{String(index + 1).padStart(2, '0')}
+                        {String(index + 1).padStart(2, '0')}
                       </td>
                       <td className="px-6 py-4 sticky left-24 bg-white group-hover:bg-gray-50 border-r border-gray-100 shadow-[4px_0_8px_-4px_rgba(0,0,0,0.05)]">
                         <div className="font-bold text-gray-800 text-sm">{student.name}</div>

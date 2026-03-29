@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import mongoose from 'mongoose';
 import Class from '../models/Class.js';
 import Assignment from '../models/Assignment.js';
 import Exam from '../models/Exam.js';
@@ -9,6 +10,8 @@ import Announcement from '../models/Announcement.js';
 import LeaveApplication from '../models/LeaveApplication.js';
 import Subject from '../models/Subject.js';
 import { isTeacher } from '../middleware/auth.js';
+
+const fallbackStudyMaterials = [];
 
 // Get teacher dashboard data
 export const getDashboard = async (req, res) => {
@@ -333,6 +336,25 @@ export const getStudyMaterials = async (req, res) => {
     const teacherId = req.user._id;
     const { classId, subjectId } = req.query;
 
+    if (mongoose.connection.readyState !== 1) {
+      let materials = fallbackStudyMaterials.filter(
+        (material) => String(material.teacher) === String(teacherId)
+      );
+
+      if (classId) {
+        materials = materials.filter((material) => String(material.class?._id || '') === String(classId));
+      }
+
+      if (subjectId) {
+        materials = materials.filter((material) => String(material.subject?._id || '') === String(subjectId));
+      }
+
+      return res.json({
+        success: true,
+        data: materials.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      });
+    }
+
     let filter = { teacher: teacherId };
     if (classId) filter.class = classId;
     if (subjectId) filter.subject = subjectId;
@@ -354,7 +376,55 @@ export const getStudyMaterials = async (req, res) => {
 // Upload study material
 export const uploadStudyMaterial = async (req, res) => {
   try {
-    const { title, description, subject, class: classId, materialType } = req.body;
+    const { title, description, subject, class: classId, materialType, url } = req.body;
+
+    if (materialType === 'link' && !url) {
+      return res.status(400).json({ error: 'URL is required for link type material' });
+    }
+
+    if (materialType !== 'link' && !req.file) {
+      return res.status(400).json({ error: 'File is required for this material type' });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      const fallbackMaterial = {
+        _id: `FB_MAT_${Date.now()}`,
+        title,
+        description,
+        teacher: req.user._id,
+        materialType,
+        class: {
+          _id: classId,
+          className: 'N/A',
+          section: 'N/A'
+        },
+        subject: {
+          _id: subject,
+          subjectName: 'N/A'
+        },
+        url: materialType === 'link' ? url : '',
+        file: req.file
+          ? {
+            filename: req.file.filename,
+            path: req.file.path,
+            originalName: req.file.originalname,
+            size: req.file.size
+          }
+          : undefined,
+        downloadCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        fallbackMode: true
+      };
+
+      fallbackStudyMaterials.unshift(fallbackMaterial);
+
+      return res.status(201).json({
+        success: true,
+        data: fallbackMaterial,
+        message: 'Stored in fallback mode because MongoDB is not connected.'
+      });
+    }
 
     const material = new StudyMaterial({
       title,
@@ -363,6 +433,7 @@ export const uploadStudyMaterial = async (req, res) => {
       class: classId,
       teacher: req.user._id,
       materialType,
+      url: materialType === 'link' ? url : undefined,
       file: {
         filename: req.file?.filename,
         path: req.file?.path,

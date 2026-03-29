@@ -78,7 +78,7 @@ export default function Sidebar({ setCurrentPage, onLogout, currentPage }) {
       <div className="mt-4 px-4">
         <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent mb-4" />
         <div className="text-center text-[10px] text-indigo-300/60 font-medium">
-          © 2026 Teacher Portal
+          Â© 2026 Teacher Portal
         </div>
       </div>
     </aside>

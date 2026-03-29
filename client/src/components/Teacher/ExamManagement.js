@@ -175,7 +175,7 @@ const ExamManagement = ({ currentUser }) => {
       const sm = marksData[student._id] || {};
       const total = calcMarksTotal(student._id);
       const avg = calcMarksAvg(student._id);
-      return [`#${String(index + 1).padStart(2, '0')}`, student.name, ...marksSubjectList.map(sub => sm[sub._id] || '-'), total, `${avg}%`, calcMarksGrade(avg)];
+      return [`${String(index + 1).padStart(2, '0')}`, student.name, ...marksSubjectList.map(sub => sm[sub._id] || '-'), total, `${avg}%`, calcMarksGrade(avg)];
     });
     const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

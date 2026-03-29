@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, BookOpen, Calendar, FileText, Upload, Eye, Edit, Trash2, Download, CheckCircle, Copy, MessageCircle, Mic, AlertTriangle, Save } from 'lucide-react';
+import { Plus, BookOpen, Calendar, FileText, Upload, Eye, Edit, Trash2, Download, CheckCircle, Copy, MessageCircle, Mic, AlertTriangle, Save, BarChart3, Clock } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const AssignmentManagement = ({ currentUser }) => {
@@ -653,34 +653,34 @@ const AssignmentManagement = ({ currentUser }) => {
           {activeTab === 'assignments' && (
             <div>
               {showForm && (
-                <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-                  <h3 className="text-lg font-semibold mb-4">Create New Assignment</h3>
-                  <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm mb-8">
+                  <h3 className="text-xl font-bold text-gray-900 mb-6 font-sans">Create New Assignment</h3>
+                  <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Title *</label>
                         <input
                           type="text"
                           name="title"
                           value={formData.title}
                           onChange={handleInputChange}
                           required
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all outline-none text-gray-700 bg-white placeholder-gray-400"
                           placeholder="Assignment title"
                         />
                       </div>
                     </div>
 
-                    <div className="mb-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <label className="block text-sm font-medium text-gray-700">Description *</label>
+                    <div>
+                      <div className="flex justify-between items-center mb-1.5">
+                        <label className="block text-sm font-semibold text-gray-700">Description *</label>
                         <button
                           type="button"
                           onClick={() => setIsRecording(!isRecording)}
-                          className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium transition-colors ${isRecording ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${isRecording ? 'bg-red-50 text-red-600 animate-pulse' : 'bg-indigo-50/70 text-indigo-600 hover:bg-indigo-100'
                             }`}
                         >
-                          <Mic className="h-4 w-4" />
+                          <Mic className="h-3.5 w-3.5" />
                           {isRecording ? 'Recording...' : 'Voice Instructions'}
                         </button>
                       </div>
@@ -690,26 +690,26 @@ const AssignmentManagement = ({ currentUser }) => {
                         onChange={handleInputChange}
                         required
                         rows="4"
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all outline-none text-gray-700 bg-white placeholder-gray-400 resize-y"
                         placeholder="Assignment description"
                       />
                       {isRecording && (
-                        <div className="mt-2 text-sm text-red-500 flex items-center gap-2">
+                        <div className="mt-2 text-sm text-red-500 flex items-center gap-2 font-medium">
                           <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
                           Recording audio... Click Voice Instructions again to stop and attach.
                         </div>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Class *</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Class *</label>
                         <select
                           name="class"
                           value={formData.class}
                           onChange={handleInputChange}
                           required
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all outline-none text-gray-700 bg-white appearance-none"
                         >
                           <option value="">Select Class</option>
                           {classes.map(cls => (
@@ -720,14 +720,14 @@ const AssignmentManagement = ({ currentUser }) => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Subject *</label>
                         <select
                           name="subject"
                           value={formData.subject}
                           onChange={handleInputChange}
                           required
                           disabled={!formData.class}
-                          className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${!formData.class ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                          className={`w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all outline-none text-gray-700 appearance-none ${!formData.class ? 'bg-gray-50 cursor-not-allowed text-gray-400' : 'bg-white'}`}
                         >
                           <option value="">Select Subject</option>
                           {subjects.map(subject => (
@@ -739,9 +739,9 @@ const AssignmentManagement = ({ currentUser }) => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Due Date *</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Due Date *</label>
                         <input
                           type="date"
                           name="dueDate"
@@ -749,11 +749,11 @@ const AssignmentManagement = ({ currentUser }) => {
                           onChange={handleInputChange}
                           required
                           min={new Date().toISOString().split('T')[0]}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all outline-none text-gray-700 bg-white"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Total Marks *</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Total Marks *</label>
                         <input
                           type="number"
                           name="totalMarks"
@@ -761,20 +761,20 @@ const AssignmentManagement = ({ currentUser }) => {
                           onChange={handleInputChange}
                           required
                           min="1"
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all outline-none text-gray-700 bg-white placeholder-gray-400"
                           placeholder="Total marks"
                         />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-2">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Assignment Type</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Assignment Type</label>
                         <select
                           name="assignmentType"
                           value={formData.assignmentType}
                           onChange={handleInputChange}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all outline-none text-gray-700 bg-white appearance-none"
                         >
                           <option value="homework">Homework</option>
                           <option value="project">Project</option>
@@ -784,16 +784,16 @@ const AssignmentManagement = ({ currentUser }) => {
                       </div>
                       {formData.assignmentType === 'quiz' && (
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Auto Grading</label>
-                          <div className="flex items-center h-[50px] bg-gray-50 px-4 rounded-lg border border-gray-200">
+                          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Auto Grading</label>
+                          <div className="flex items-center h-[50px] bg-white px-4 rounded-xl border border-gray-200 hover:border-indigo-300 transition-colors cursor-pointer">
                             <input
                               type="checkbox"
                               id="autoGrade"
-                              className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                              className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-pointer"
                               checked={formData.autoGrading || false}
                               onChange={(e) => setFormData({ ...formData, autoGrading: e.target.checked })}
                             />
-                            <label htmlFor="autoGrade" className="ml-2 block text-sm text-gray-700">
+                            <label htmlFor="autoGrade" className="ml-3 block text-sm font-medium text-gray-700 cursor-pointer select-none w-full">
                               Enable automatic grading for MCQs
                             </label>
                           </div>
@@ -802,33 +802,36 @@ const AssignmentManagement = ({ currentUser }) => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Attachment</label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                        <Upload className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                        <p className="text-gray-600 mb-2">Click to upload or drag and drop</p>
-                        <p className="text-gray-400 text-sm">Supports PDF, DOC, DOCX, PPT, PPTX, MP4, MP3, JPG, PNG</p>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">Attachment</label>
+                      <div className="border-2 border-dashed border-gray-200 rounded-2xl p-10 text-center bg-gray-50/30 hover:bg-indigo-50/30 hover:border-indigo-400 transition-all group flex flex-col items-center justify-center">
+                        <div className="p-3 bg-white rounded-full shadow-sm mb-3 group-hover:scale-110 transition-transform">
+                          <Upload className="h-6 w-6 text-indigo-400" />
+                        </div>
+                        <p className="text-gray-600 font-medium mb-1.5">Click to upload or drag and drop</p>
+                        <p className="text-gray-400 text-xs mb-4">Supports PDF, DOC, DOCX, PPT, PPTX, MP4, MP3, JPG, PNG</p>
                         <input
                           type="file"
                           onChange={handleFileChange}
                           className="hidden"
                           id="file-upload"
                         />
-                        <label htmlFor="file-upload" className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700">
+                        <label htmlFor="file-upload" className="inline-flex items-center justify-center px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl cursor-pointer hover:bg-indigo-700 transition-colors shadow-sm">
                           Select File
                         </label>
                         {formData.file && (
-                          <p className="mt-2 text-sm text-gray-600">
-                            Selected: {formData.file.name} ({(formData.file.size / 1024 / 1024).toFixed(2)} MB)
-                          </p>
+                          <div className="mt-4 px-4 py-2 bg-white rounded-lg border border-emerald-100 text-sm font-medium text-emerald-700 flex items-center gap-2 shadow-sm">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            {formData.file.name} ({(formData.file.size / 1024 / 1024).toFixed(2)} MB)
+                          </div>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex gap-3 pt-4">
+                    <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
                       <button
                         type="submit"
                         disabled={loading}
-                        className={`px-6 py-3 rounded-lg text-white font-medium ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                        className={`px-8 py-2.5 rounded-xl font-semibold transition-all shadow-sm ${loading ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow'
                           }`}
                       >
                         {loading ? 'Saving...' : formData._id ? 'Update Assignment' : 'Create Assignment'}
@@ -848,7 +851,7 @@ const AssignmentManagement = ({ currentUser }) => {
                             file: null
                           });
                         }}
-                        className="px-6 py-3 rounded-lg bg-gray-300 text-gray-700 font-medium hover:bg-gray-400"
+                        className="px-8 py-2.5 rounded-xl font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all"
                       >
                         Cancel
                       </button>
@@ -857,62 +860,62 @@ const AssignmentManagement = ({ currentUser }) => {
                 </div>
               )}
 
-              <div className="bg-white rounded-xl shadow-md overflow-hidden">
+              <div className="bg-white rounded-2xl shadow-soft border border-gray-100/80 overflow-hidden">
                 <div className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">All Assignments</h3>
+                  <h3 className="text-xl font-bold text-gray-900 mb-6 font-sans">All Assignments</h3>
                   {assignments.length > 0 ? (
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
-                          <tr className="bg-gray-50">
-                            <th className="px-4 py-3 text-left">Title</th>
-                            <th className="px-4 py-3 text-left">Class</th>
-                            <th className="px-4 py-3 text-left">Subject</th>
-                            <th className="px-4 py-3 text-left">Due Date</th>
-                            <th className="px-4 py-3 text-left">Status</th>
-                            <th className="px-4 py-3 text-left">Actions</th>
+                          <tr className="bg-gray-50/70 border-y border-gray-100">
+                            <th className="px-5 py-4 text-left text-sm font-bold text-gray-800 tracking-wide">Title</th>
+                            <th className="px-5 py-4 text-left text-sm font-bold text-gray-800 tracking-wide">Class</th>
+                            <th className="px-5 py-4 text-left text-sm font-bold text-gray-800 tracking-wide">Subject</th>
+                            <th className="px-5 py-4 text-left text-sm font-bold text-gray-800 tracking-wide">Due Date</th>
+                            <th className="px-5 py-4 text-left text-sm font-bold text-gray-800 tracking-wide">Status</th>
+                            <th className="px-5 py-4 text-left text-sm font-bold text-gray-800 tracking-wide">Actions</th>
                           </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-gray-100">
                           {assignments.map(assignment => (
-                            <tr key={assignment._id} className="border-b hover:bg-gray-50">
-                              <td className="px-4 py-3">
-                                <div className="font-medium">{assignment.title}</div>
-                                <div className="text-sm text-gray-600 truncate max-w-xs">{assignment.description}</div>
+                            <tr key={assignment._id} className="hover:bg-gray-50/50 transition-colors">
+                              <td className="px-5 py-4">
+                                <div className="font-semibold text-gray-900">{assignment.title}</div>
+                                <div className="text-sm text-gray-500 truncate max-w-xs mt-0.5">{assignment.description}</div>
                               </td>
-                              <td className="px-4 py-3">
+                              <td className="px-5 py-4 text-sm text-gray-700">
                                 {assignment.class?.className} - {assignment.class?.section}
                               </td>
-                              <td className="px-4 py-3">
+                              <td className="px-5 py-4 text-sm text-gray-700">
                                 {assignment.subject?.subjectName}
                               </td>
-                              <td className="px-4 py-3">
+                              <td className="px-5 py-4 text-sm text-gray-700">
                                 {new Date(assignment.dueDate).toLocaleDateString()}
                               </td>
-                              <td className="px-4 py-3">
-                                <span className={`px-2 py-1 rounded-full text-xs ${new Date(assignment.dueDate) < new Date()
+                              <td className="px-5 py-4">
+                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide ${new Date(assignment.dueDate) < new Date()
                                   ? assignment.status === 'active'
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-gray-100 text-gray-800'
-                                  : 'bg-green-100 text-green-800'
+                                    ? 'bg-yellow-100/80 text-yellow-700'
+                                    : 'bg-gray-100 text-gray-700'
+                                  : 'bg-green-100/80 text-green-700'
                                   }`}>
                                   {new Date(assignment.dueDate) < new Date()
                                     ? assignment.status === 'active' ? 'Overdue' : 'Completed'
                                     : 'Active'}
                                 </span>
                               </td>
-                              <td className="px-4 py-3">
-                                <div className="flex gap-2">
+                              <td className="px-5 py-4">
+                                <div className="flex items-center gap-3">
                                   <button
                                     onClick={() => {
                                       setSelectedAssignment(assignment);
                                       setActiveTab('submissions');
                                       fetchSubmissions(assignment._id);
                                     }}
-                                    className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg"
+                                    className="text-blue-500 hover:text-blue-700 hover:bg-blue-50 p-1.5 rounded-md transition-all"
                                     title="View Submissions"
                                   >
-                                    <Eye className="h-4 w-4" />
+                                    <Eye className="h-[18px] w-[18px]" strokeWidth={2.5} />
                                   </button>
                                   <button
                                     onClick={() => {
@@ -922,31 +925,31 @@ const AssignmentManagement = ({ currentUser }) => {
                                       });
                                       setShowForm(true);
                                     }}
-                                    className="p-2 text-green-600 hover:bg-green-100 rounded-lg"
+                                    className="text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 p-1.5 rounded-md transition-all"
                                     title="Edit"
                                   >
-                                    <Edit className="h-4 w-4" />
+                                    <Edit className="h-[18px] w-[18px]" strokeWidth={2.5} />
                                   </button>
                                   <button
                                     onClick={() => setPeerReviewEnabled(prev => ({ ...prev, [assignment._id]: !prev[assignment._id] }))}
-                                    className={`p-2 rounded-lg ${peerReviewEnabled[assignment._id] ? 'bg-purple-100 text-purple-700' : 'text-purple-600 hover:bg-purple-100'}`}
+                                    className={`p-1.5 rounded-md transition-all ${peerReviewEnabled[assignment._id] ? 'bg-purple-100 text-purple-700' : 'text-purple-500 hover:text-purple-700 hover:bg-purple-50'}`}
                                     title={peerReviewEnabled[assignment._id] ? "Disable Peer Review" : "Enable Peer Review"}
                                   >
-                                    <MessageCircle className="h-4 w-4" />
+                                    <MessageCircle className="h-[18px] w-[18px]" strokeWidth={2.5} />
                                   </button>
                                   <button
                                     onClick={() => alert(`Plagiarism analysis report for ${assignment.title}:\n\n- No major plagiarism detected across submissions.\n- Overall Originality: 94%`)}
-                                    className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg"
+                                    className="text-amber-500 hover:text-amber-700 hover:bg-amber-50 p-1.5 rounded-md transition-all"
                                     title="Assignment Plagiarism Overview"
                                   >
-                                    <AlertTriangle className="h-4 w-4" />
+                                    <AlertTriangle className="h-[18px] w-[18px]" strokeWidth={2.5} />
                                   </button>
                                   <button
                                     onClick={() => handleDelete(assignment._id)}
-                                    className="p-2 text-red-600 hover:bg-red-100 rounded-lg"
+                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded-md transition-all"
                                     title="Delete"
                                   >
-                                    <Trash2 className="h-4 w-4" />
+                                    <Trash2 className="h-[18px] w-[18px]" strokeWidth={2.5} />
                                   </button>
                                 </div>
                               </td>
@@ -956,10 +959,10 @@ const AssignmentManagement = ({ currentUser }) => {
                       </table>
                     </div>
                   ) : (
-                    <div className="text-center py-12">
-                      <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-500">No assignments found</p>
-                      <p className="text-gray-400 text-sm mt-2">Create your first assignment using the button above</p>
+                    <div className="text-center py-16 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+                      <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-500 font-medium">No assignments found</p>
+                      <p className="text-gray-400 text-sm mt-1">Create your first assignment using the button above</p>
                     </div>
                   )}
                 </div>
@@ -971,118 +974,129 @@ const AssignmentManagement = ({ currentUser }) => {
           {activeTab === 'submissions' && (
             <div>
               {/* Subject Filter */}
-              <div className="flex items-center gap-3 mb-5">
-                <label className="text-sm font-semibold text-gray-600">Subject:</label>
-                <select
-                  value={subjectFilter}
-                  onChange={e => { setSubjectFilter(e.target.value); setSelectedAssignment(null); }}
-                  className="px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium bg-white focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none shadow-sm"
-                >
-                  <option value="">All Subjects</option>
-                  {[...new Set(assignments.map(a => a.subject?.subjectName).filter(Boolean))].map(subj => (
-                    <option key={subj} value={subj}>{subj}</option>
-                  ))}
-                </select>
-                {subjectFilter && (
-                  <button onClick={() => { setSubjectFilter(''); setSelectedAssignment(null); }} className="text-xs text-indigo-600 hover:underline font-medium">Clear</button>
-                )}
-              </div>
-
-              {/* Assignment list for selected subject when no assignment picked */}
-              {!selectedAssignment && (
-                <div className="space-y-3 mb-5">
-                  {(subjectFilter ? assignments.filter(a => a.subject?.subjectName === subjectFilter) : assignments).map(asgn => (
-                    <div key={asgn._id} className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-5 py-3 hover:bg-indigo-50 hover:border-indigo-200 transition-colors">
-                      <div>
-                        <p className="font-semibold text-gray-800">{asgn.title}</p>
-                        <p className="text-xs text-gray-500">{asgn.subject?.subjectName} &bull; Due: {asgn.dueDate ? new Date(asgn.dueDate).toLocaleDateString('en-IN') : 'N/A'}</p>
-                      </div>
-                      <button
-                        onClick={() => { setSelectedAssignment(asgn); fetchSubmissions(asgn._id); }}
-                        className="px-4 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-colors"
-                      >View Submissions</button>
-                    </div>
-                  ))}
-                  {(subjectFilter ? assignments.filter(a => a.subject?.subjectName === subjectFilter) : assignments).length === 0 && (
-                    <p className="text-center text-gray-400 py-8">No assignments found for this subject.</p>
+                <div className="flex items-center gap-3 mb-6">
+                  <label className="text-sm font-bold text-gray-700">Subject:</label>
+                  <select
+                    value={subjectFilter}
+                    onChange={e => { setSubjectFilter(e.target.value); setSelectedAssignment(null); }}
+                    className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-semibold bg-white focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none shadow-sm cursor-pointer hover:border-gray-300 transition-colors"
+                  >
+                    <option value="">All Subjects</option>
+                    {[...new Set(assignments.map(a => a.subject?.subjectName).filter(Boolean))].map(subj => (
+                      <option key={subj} value={subj}>{subj}</option>
+                    ))}
+                  </select>
+                  {subjectFilter && (
+                    <button onClick={() => { setSubjectFilter(''); setSelectedAssignment(null); }} className="text-xs text-indigo-600 hover:text-indigo-800 hover:underline font-bold transition-colors">Clear</button>
                   )}
                 </div>
-              )}
 
-              {selectedAssignment ? (
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <div className="flex items-center gap-3">
-                      <button onClick={() => setSelectedAssignment(null)} className="text-indigo-600 hover:text-indigo-800 text-sm font-semibold">&larr; Back</button>
-                      <h3 className="text-lg font-semibold">
-                        Submissions for: {selectedAssignment.title}
-                        <span className="text-sm text-gray-500 ml-2">({submissions.length} Total Students)</span>
-                      </h3>
-                    </div>
-                    <button
-                      onClick={handleMarkAllComplete}
-                      className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2 text-sm font-medium"
-                    >
-                      <CheckCircle className="h-4 w-4" />
-                      Mark All Complete
-                    </button>
+                {/* Assignment list for selected subject when no assignment picked */}
+                {!selectedAssignment && (
+                  <div className="space-y-4 mb-5">
+                    {(subjectFilter ? assignments.filter(a => a.subject?.subjectName === subjectFilter) : assignments).map(asgn => (
+                      <div key={asgn._id} className="flex items-center justify-between bg-white border border-gray-100/80 rounded-2xl px-6 py-4 hover:border-indigo-200 hover:shadow-md transition-all group">
+                        <div className="flex flex-col gap-1">
+                          <p className="font-bold text-lg text-gray-900 group-hover:text-indigo-600 transition-colors">{asgn.title}</p>
+                          <p className="text-xs font-semibold text-gray-500">{asgn.subject?.subjectName} &bull; <span className="text-gray-400 font-medium">Due: {asgn.dueDate ? new Date(asgn.dueDate).toLocaleDateString('en-IN') : 'N/A'}</span></p>
+                        </div>
+                        <button
+                          onClick={() => { setSelectedAssignment(asgn); fetchSubmissions(asgn._id); }}
+                          className="px-6 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm focus:ring-4 focus:ring-indigo-100"
+                        >View Submissions</button>
+                      </div>
+                    ))}
+                    {(subjectFilter ? assignments.filter(a => a.subject?.subjectName === subjectFilter) : assignments).length === 0 && (
+                      <div className="text-center py-16 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
+                        <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                        <p className="text-gray-500 font-semibold">No assignments found for this subject.</p>
+                      </div>
+                    )}
                   </div>
+                )}
+
+                {selectedAssignment ? (
+                  <div>
+                    <div className="flex justify-between items-center mb-6 mt-2">
+                      <div className="flex items-center gap-4">
+                        <button onClick={() => setSelectedAssignment(null)} className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 text-sm font-bold transition-colors">
+                          &larr; Back
+                        </button>
+                        <h3 className="text-lg font-bold text-gray-900">
+                          Submissions for: {selectedAssignment.title}
+                          <span className="text-sm font-semibold text-gray-400 ml-2">({submissions.length} Total Students)</span>
+                        </h3>
+                      </div>
+                      <button
+                        onClick={handleMarkAllComplete}
+                        className="bg-emerald-600 text-white px-5 py-2.5 rounded-xl hover:bg-emerald-700 transition-colors flex items-center gap-2 text-sm font-bold shadow-sm"
+                      >
+                        <CheckCircle className="h-[18px] w-[18px]" strokeWidth={2.5} />
+                        Mark All Outputs Completed
+                      </button>
+                    </div>
 
                   {submissions.length > 0 ? (
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto mt-6">
                       <table className="w-full">
                         <thead>
-                          <tr className="bg-gray-50">
-                            <th className="px-4 py-3 text-left">Student</th>
-                            <th className="px-4 py-3 text-left">Submitted At</th>
-                            <th className="px-4 py-3 text-left">Given Date</th>
-                            <th className="px-4 py-3 text-left">Status</th>
-                            <th className="px-4 py-3 text-left">Actions</th>
+                          <tr className="bg-gray-50/70 border-y border-gray-100">
+                            <th className="px-5 py-4 text-left text-sm font-bold text-gray-800 tracking-wide">Student</th>
+                            <th className="px-5 py-4 text-left text-sm font-bold text-gray-800 tracking-wide">Submitted At</th>
+                            <th className="px-5 py-4 text-left text-sm font-bold text-gray-800 tracking-wide">Given Date</th>
+                            <th className="px-5 py-4 text-left text-sm font-bold text-gray-800 tracking-wide">Status</th>
+                            <th className="px-5 py-4 text-left text-sm font-bold text-gray-800 tracking-wide">Actions</th>
                           </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-gray-100">
                           {submissions.map(submission => (
-                            <tr key={submission._id} className="border-b hover:bg-gray-50">
-                              <td className="px-4 py-3">
+                            <tr key={submission._id} className="hover:bg-gray-50/50 transition-colors">
+                              <td className="px-5 py-4 text-sm font-medium text-gray-900">
                                 {submission.student?.name}
                               </td>
-                              <td className="px-4 py-3">
-                                {submission.submittedAt ? new Date(submission.submittedAt).toLocaleString() : <span className="text-gray-400 italic">Not submitted</span>}
+                              <td className="px-5 py-4 text-sm text-gray-700 font-medium">
+                                {submission.submittedAt ? new Date(submission.submittedAt).toLocaleString() : <span className="text-gray-400 italic font-normal">Not submitted</span>}
                               </td>
-                              <td className="px-4 py-3 text-gray-700">
+                              <td className="px-5 py-4 text-sm text-gray-700 font-medium">
                                 {selectedAssignment?.createdAt
                                   ? new Date(selectedAssignment.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
                                   : selectedAssignment?.dueDate
                                     ? new Date(new Date(selectedAssignment.dueDate).getTime() - 7 * 86400000).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-                                    : <span className="text-gray-400 italic">N/A</span>}
+                                    : <span className="text-gray-400 italic font-normal">N/A</span>}
                               </td>
-                              <td className="px-4 py-3">
-                                <div className="flex items-center gap-4">
-                                  <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                      type="radio"
-                                      name={`status-${submission._id}`}
-                                      value="graded"
-                                      checked={submission.status === 'graded'}
-                                      onChange={() => handleStatusChange(submission._id, 'graded')}
-                                      className="w-4 h-4 text-green-600"
-                                    />
-                                    <span className={`text-sm ${submission.status === 'graded' ? 'text-green-600 font-bold' : 'text-gray-600'}`}>Complete</span>
+                              <td className="px-5 py-4">
+                                <div className="flex items-center gap-5">
+                                  <label className="flex items-center gap-2.5 cursor-pointer group">
+                                    <div className="relative flex items-center justify-center p-0.5 pointer-events-none">
+                                      <input
+                                        type="radio"
+                                        name={`status-${submission._id}`}
+                                        value="graded"
+                                        checked={submission.status === 'graded'}
+                                        onChange={() => handleStatusChange(submission._id, 'graded')}
+                                        className="peer appearance-none w-4 h-4 border-[2px] border-gray-300 rounded-full checked:border-emerald-500 checked:bg-white transition-all cursor-pointer pointer-events-auto"
+                                      />
+                                      <span className="absolute w-2 h-2 bg-emerald-500 rounded-full opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></span>
+                                    </div>
+                                    <span className={`text-sm tracking-wide ${submission.status === 'graded' ? 'text-emerald-600 font-bold' : 'text-gray-500 font-semibold group-hover:text-gray-700'}`}>Complete</span>
                                   </label>
-                                  <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                      type="radio"
-                                      name={`status-${submission._id}`}
-                                      value="pending"
-                                      checked={submission.status === 'pending'}
-                                      onChange={() => handleStatusChange(submission._id, 'pending')}
-                                      className="w-4 h-4 text-yellow-600"
-                                    />
-                                    <span className={`text-sm ${submission.status === 'pending' ? 'text-yellow-600 font-bold' : 'text-gray-600'}`}>Pending</span>
+                                  <label className="flex items-center gap-2.5 cursor-pointer group">
+                                    <div className="relative flex items-center justify-center p-0.5 pointer-events-none">
+                                      <input
+                                        type="radio"
+                                        name={`status-${submission._id}`}
+                                        value="pending"
+                                        checked={submission.status === 'pending'}
+                                        onChange={() => handleStatusChange(submission._id, 'pending')}
+                                        className="peer appearance-none w-4 h-4 border-[2px] border-gray-300 rounded-full checked:border-amber-400 checked:bg-white transition-all cursor-pointer pointer-events-auto"
+                                      />
+                                      <span className="absolute w-2 h-2 bg-amber-400 rounded-full opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></span>
+                                    </div>
+                                    <span className={`text-sm tracking-wide ${submission.status === 'pending' ? 'text-amber-500 font-bold' : 'text-gray-500 font-semibold group-hover:text-gray-700'}`}>Pending</span>
                                   </label>
                                 </div>
                               </td>
-                              <td className="px-4 py-3">
+                              <td className="px-5 py-4">
                                 <div className="flex gap-2">
                                   <button
                                     onClick={() => {
@@ -1092,10 +1106,10 @@ const AssignmentManagement = ({ currentUser }) => {
                                         setSelectedAssignment(selectedAssignment);
                                       }, 100);
                                     }}
-                                    className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg"
+                                    className="p-1.5 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-all"
                                     title="Grade Submission"
                                   >
-                                    <CheckCircle className="h-4 w-4" />
+                                    <CheckCircle className="h-[18px] w-[18px]" strokeWidth={2.5} />
                                   </button>
                                 </div>
                               </td>
@@ -1119,12 +1133,12 @@ const AssignmentManagement = ({ currentUser }) => {
           {activeTab === 'grading' && (
             <div>
               {/* Subject + Assignment Filter */}
-              <div className="flex items-center gap-3 mb-5">
-                <label className="text-sm font-semibold text-gray-600">Subject:</label>
+              <div className="flex items-center gap-3 mb-6">
+                <label className="text-sm font-bold text-gray-700">Subject:</label>
                 <select
                   value={gradingSubjectFilter}
                   onChange={e => { setGradingSubjectFilter(e.target.value); setSelectedAssignment(null); }}
-                  className="px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium bg-white focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none shadow-sm"
+                  className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-semibold bg-white focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none shadow-sm cursor-pointer hover:border-gray-300 transition-colors"
                 >
                   <option value="">All Subjects</option>
                   {[...new Set(assignments.map(a => a.subject?.subjectName).filter(Boolean))].map(subj => (
@@ -1132,27 +1146,30 @@ const AssignmentManagement = ({ currentUser }) => {
                   ))}
                 </select>
                 {gradingSubjectFilter && (
-                  <button onClick={() => { setGradingSubjectFilter(''); setSelectedAssignment(null); }} className="text-xs text-indigo-600 hover:underline font-medium">Clear</button>
+                  <button onClick={() => { setGradingSubjectFilter(''); setSelectedAssignment(null); }} className="text-xs text-indigo-600 hover:text-indigo-800 hover:underline font-bold transition-colors">Clear</button>
                 )}
               </div>
 
               {/* Assignment picker when none selected */}
               {!selectedAssignment && (
-                <div className="space-y-3 mb-5">
+                <div className="space-y-4 mb-5">
                   {(gradingSubjectFilter ? assignments.filter(a => a.subject?.subjectName === gradingSubjectFilter) : assignments).map(asgn => (
-                    <div key={asgn._id} className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-5 py-3 hover:bg-indigo-50 hover:border-indigo-200 transition-colors">
-                      <div>
-                        <p className="font-semibold text-gray-800">{asgn.title}</p>
-                        <p className="text-xs text-gray-500">{asgn.subject?.subjectName} &bull; Total Marks: {asgn.totalMarks} &bull; Due: {asgn.dueDate ? new Date(asgn.dueDate).toLocaleDateString('en-IN') : 'N/A'}</p>
+                    <div key={asgn._id} className="flex items-center justify-between bg-white border border-gray-100/80 rounded-2xl px-6 py-4 hover:border-indigo-200 hover:shadow-md transition-all group">
+                      <div className="flex flex-col gap-1">
+                        <p className="font-bold text-lg text-gray-900 group-hover:text-indigo-600 transition-colors">{asgn.title}</p>
+                        <p className="text-xs font-semibold text-gray-500">{asgn.subject?.subjectName} &bull; <span className="text-gray-400 font-medium">Total Marks: {asgn.totalMarks}</span> &bull; <span className="text-gray-400 font-medium">Due: {asgn.dueDate ? new Date(asgn.dueDate).toLocaleDateString('en-IN') : 'N/A'}</span></p>
                       </div>
                       <button
                         onClick={() => { setSelectedAssignment(asgn); fetchSubmissions(asgn._id); }}
-                        className="px-4 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-colors"
+                        className="px-6 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm focus:ring-4 focus:ring-indigo-100"
                       >Grade</button>
                     </div>
                   ))}
                   {(gradingSubjectFilter ? assignments.filter(a => a.subject?.subjectName === gradingSubjectFilter) : assignments).length === 0 && (
-                    <p className="text-center text-gray-400 py-8">No assignments found for this subject.</p>
+                    <div className="text-center py-16 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
+                      <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-500 font-semibold">No assignments found for this subject.</p>
+                    </div>
                   )}
                 </div>
               )}
@@ -1332,94 +1349,183 @@ const AssignmentManagement = ({ currentUser }) => {
 
             return (
             <div className="space-y-6">
-              <h3 className="text-lg font-bold text-gray-800">Assignment Analytics</h3>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600">
+                  <BarChart3 size={20} className="stroke-[2.5]" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800 tracking-tight">Assignment Analytics</h3>
+                  <p className="text-sm text-gray-500 font-medium">Insights and performance tracking</p>
+                </div>
+              </div>
 
               {/* Overall Stat Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 p-5 rounded-2xl shadow-sm">
-                  <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">Completion Rate</p>
-                  <p className="text-4xl font-extrabold text-blue-600">{overallCompletion}%</p>
-                  <p className="text-xs text-gray-500 mt-1">{totalGraded} graded of {totalStudents} total submissions</p>
-                  <div className="mt-3 w-full bg-blue-100 rounded-full h-2">
-                    <div className="bg-blue-500 h-2 rounded-full transition-all" style={{ width: `${overallCompletion}%` }} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl p-6 text-white shadow-lg shadow-indigo-200 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl transform translate-x-10 -translate-y-10 group-hover:bg-white/20 transition-all duration-700"></div>
+                  <div className="relative z-10">
+                    <div className="flex justify-between items-start mb-4">
+                      <p className="text-indigo-100 font-medium tracking-wide">Overall Completion</p>
+                      <div className="p-2 bg-white/20 rounded-xl backdrop-blur-md">
+                        <CheckCircle size={20} className="text-white" />
+                      </div>
+                    </div>
+                    <div className="flex items-end gap-3 mb-1">
+                      <h4 className="text-5xl font-extrabold tracking-tight">{overallCompletion}%</h4>
+                    </div>
+                    <p className="text-indigo-100/80 text-sm mt-2 font-medium bg-black/10 inline-block px-3 py-1 rounded-full">{totalGraded} graded of {totalStudents} total</p>
+                    
+                    <div className="mt-6 w-full bg-black/20 rounded-full h-1.5 overflow-hidden">
+                      <div className="bg-white h-full rounded-full transition-all duration-1000 ease-out relative" style={{ width: `${overallCompletion}%` }}>
+                        <div className="absolute inset-0 bg-white/50 w-full h-full animate-pulse"></div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 p-5 rounded-2xl shadow-sm">
-                  <p className="text-xs font-bold text-amber-400 uppercase tracking-widest mb-1">Pending Submissions</p>
-                  <p className="text-4xl font-extrabold text-amber-600">{totalPending}</p>
-                  <p className="text-xs text-gray-500 mt-1">Across {assignments.length} assignment(s)</p>
+
+                <div className="bg-white border-2 border-amber-100 rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-full blur-3xl transform translate-x-10 -translate-y-10"></div>
+                  <div className="relative z-10">
+                    <div className="flex justify-between items-start mb-4">
+                      <p className="text-gray-500 font-bold uppercase tracking-wider text-xs">Pending Output</p>
+                      <div className="p-2 bg-amber-50 rounded-xl text-amber-500">
+                        <Clock size={20} />
+                      </div>
+                    </div>
+                    <div className="flex items-end gap-3 mb-1">
+                      <h4 className="text-5xl font-extrabold text-gray-800 tracking-tight">{totalPending}</h4>
+                      <span className="text-gray-400 font-medium mb-1.5">tasks</span>
+                    </div>
+                    <p className="text-gray-500 text-sm mt-2 font-medium flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                      Across {assignments.length} active assignments
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {/* Subject-wise completion */}
-              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
-                <h4 className="font-bold text-gray-700 mb-4 text-sm uppercase tracking-wider">Subject-wise Completion</h4>
-                <div className="space-y-4">
-                  {Object.entries(subjectMap).map(([subj, data], i) => {
-                    const pct = data.total > 0 ? Math.round((data.graded / data.total) * 100) : 0;
-                    const subjAvg = data.avgPcts.length > 0 ? Math.round(data.avgPcts.reduce((a, b) => a + b, 0) / data.avgPcts.length) : null;
-                    return (
-                      <div key={subj}>
-                        <div className="flex justify-between items-center mb-1.5">
-                          <span className="text-sm font-semibold text-gray-700">{subj}</span>
-                          <div className="flex items-center gap-4">
-                            {subjAvg !== null && <span className="text-xs text-emerald-600 font-bold">Avg: {subjAvg}%</span>}
-                            <span className="text-sm font-bold text-gray-800">{pct}%</span>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Subject-wise completion */}
+                <div className="lg:col-span-1 bg-white border border-gray-100 rounded-3xl shadow-sm p-6 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-500"></div>
+                  <h4 className="font-bold text-gray-800 mb-6 flex items-center gap-2 text-sm uppercase tracking-wider">
+                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                      <BookOpen size={16} />
+                    </div>
+                    Subject Stats
+                  </h4>
+                  <div className="space-y-6">
+                    {Object.entries(subjectMap).length === 0 ? (
+                      <div className="text-center py-6 text-gray-400 font-medium">No subject data</div>
+                    ) : (
+                      Object.entries(subjectMap).map(([subj, data], i) => {
+                        const pct = data.total > 0 ? Math.round((data.graded / data.total) * 100) : 0;
+                        const subjAvg = data.avgPcts.length > 0 ? Math.round(data.avgPcts.reduce((a, b) => a + b, 0) / data.avgPcts.length) : null;
+                        
+                        return (
+                          <div key={subj} className="group">
+                            <div className="flex justify-between items-end mb-2">
+                              <div>
+                                <span className="text-sm font-bold text-gray-700 block mb-0.5">{subj}</span>
+                                <span className="text-xs text-gray-400 font-medium">{data.graded} / {data.total} graded</span>
+                              </div>
+                              <div className="text-right">
+                                {subjAvg !== null && <span className="text-[10px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full block mb-1">Avg: {subjAvg}%</span>}
+                                <span className="text-lg font-extrabold text-gray-800 leading-none">{pct}%</span>
+                              </div>
+                            </div>
+                            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                              <div 
+                                className="h-full rounded-full transition-all duration-1000 ease-out bg-indigo-500 group-hover:bg-indigo-400 relative" 
+                                style={{ width: `${pct}%` }}
+                              >
+                                <div className="absolute top-0 right-0 bottom-0 w-10 bg-white/20 animate-pulse"></div>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                        <div className="w-full bg-gray-100 rounded-full h-2.5">
-                          <div className={`${subjectColors[i % subjectColors.length]} h-2.5 rounded-full transition-all duration-500`} style={{ width: `${pct}%` }} />
-                        </div>
-                        <p className="text-xs text-gray-400 mt-0.5">{data.graded} graded / {data.total} total</p>
-                      </div>
-                    );
-                  })}
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
-              </div>
 
               {/* Per-assignment breakdown */}
-              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100">
-                  <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Per-Assignment Breakdown</h4>
+              <div className="lg:col-span-2 bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden flex flex-col">
+                <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                  <h4 className="font-bold text-gray-800 flex items-center gap-2 text-sm uppercase tracking-wider">
+                    <div className="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center">
+                      <FileText size={16} />
+                    </div>
+                    Assignment Breakdown
+                  </h4>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50">
+                <div className="overflow-x-auto flex-1">
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-white border-b border-gray-100 text-xs uppercase text-gray-400 font-bold tracking-wider">
                       <tr>
-                        <th className="px-5 py-3 text-left font-semibold text-gray-600">Assignment</th>
-                        <th className="px-5 py-3 text-left font-semibold text-gray-600">Subject</th>
-                        <th className="px-5 py-3 text-left font-semibold text-gray-600">Graded</th>
-                        <th className="px-5 py-3 text-left font-semibold text-gray-600">Pending</th>
-                        <th className="px-5 py-3 text-left font-semibold text-gray-600">Completion</th>
-                        <th className="px-5 py-3 text-left font-semibold text-gray-600">Avg Score</th>
+                        <th className="px-6 py-4 rounded-tl-xl whitespace-nowrap">Assignment Info</th>
+                        <th className="px-6 py-4 whitespace-nowrap">Status</th>
+                        <th className="px-6 py-4 whitespace-nowrap">Progress</th>
+                        <th className="px-6 py-4 rounded-tr-xl whitespace-nowrap">Avg Score</th>
                       </tr>
                     </thead>
-                    <tbody>
-                      {analyticsRows.map((row, i) => (
-                        <tr key={row.asgn._id} className="border-t border-gray-50 hover:bg-gray-50">
-                          <td className="px-5 py-3 font-medium text-gray-800">{row.asgn.title}</td>
-                          <td className="px-5 py-3 text-gray-500">{row.asgn.subject?.subjectName || '—'}</td>
-                          <td className="px-5 py-3 text-emerald-600 font-bold">{row.graded}</td>
-                          <td className="px-5 py-3 text-amber-600 font-bold">{row.pending}</td>
-                          <td className="px-5 py-3">
-                            <div className="flex items-center gap-2">
-                              <div className="w-20 bg-gray-100 rounded-full h-2">
-                                <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${row.completionPct}%` }} />
-                              </div>
-                              <span className="font-semibold text-gray-700">{row.completionPct}%</span>
-                            </div>
-                          </td>
-                          <td className="px-5 py-3">
-                            {row.avgPct !== null
-                              ? <span className={`font-bold ${row.avgPct >= 60 ? 'text-emerald-600' : row.avgPct >= 35 ? 'text-amber-600' : 'text-red-500'}`}>{row.avgMarks} / {row.asgn.totalMarks} ({row.avgPct}%)</span>
-                              : <span className="text-gray-400 italic text-xs">Not graded</span>}
-                          </td>
+                    <tbody className="divide-y divide-gray-50">
+                      {analyticsRows.length === 0 ? (
+                        <tr>
+                          <td colSpan="4" className="px-6 py-8 text-center text-gray-400 font-medium">No analytics data available</td>
                         </tr>
-                      ))}
+                      ) : (
+                        analyticsRows.map((row, i) => (
+                          <tr key={row.asgn._id} className="hover:bg-gray-50/80 transition-colors group">
+                            <td className="px-6 py-4">
+                              <div className="font-bold text-gray-800 group-hover:text-indigo-600 transition-colors mb-0.5">{row.asgn.title}</div>
+                              <div className="text-xs text-gray-500 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+                                {row.asgn.subject?.subjectName || '—'}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex flex-col gap-1">
+                                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full w-max">
+                                  <CheckCircle size={12} /> {row.graded} Graded
+                                </span>
+                                {row.pending > 0 && (
+                                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full w-max">
+                                    <Clock size={12} /> {row.pending} Pending
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <span className="font-extrabold text-gray-700 w-10 text-right">{row.completionPct}%</span>
+                                <div className="w-24 bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                                  <div 
+                                    className="bg-indigo-500 h-full rounded-full transition-all duration-700" 
+                                    style={{ width: `${row.completionPct}%` }} 
+                                  />
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              {row.avgPct !== null ? (
+                                <div className="flex flex-col">
+                                  <span className={`font-bold ${row.avgPct >= 60 ? 'text-emerald-600' : row.avgPct >= 35 ? 'text-amber-600' : 'text-red-500'}`}>
+                                    {row.avgMarks} / {row.asgn.totalMarks} <span className="text-xs ml-1 opacity-80">({row.avgPct}%)</span>
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="inline-flex items-center justify-center px-2 py-1 rounded-lg bg-gray-50 text-gray-400 text-xs font-medium border border-gray-100 italic">Not graded</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
               </div>
+            </div>
             </div>
             );
           })()}
