@@ -2,6 +2,7 @@
   "name": "teacher-portal-client",
   "version": "1.0.0",
   "private": true,
+  "homepage": "https://hpatelh08.github.io/teacher-section",
   "dependencies": {
     "axios": "^1.13.5",
     "file-saver": "^2.0.5",
