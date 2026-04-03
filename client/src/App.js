@@ -13,22 +13,37 @@ import Reports from './components/Teacher/Reports';
 import MarksManagement from './components/Teacher/MarksManagement';
 import ClassManagement from './components/Teacher/ClassManagement';
 import StudentManagement from './components/Teacher/StudentManagement';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
-  useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
-
-    // Get user data if available
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      setCurrentUser(JSON.parse(userData));
+  const readJson = (value) => {
+    if (!value) return null;
+    try {
+      return JSON.parse(value);
+    } catch {
+      return null;
     }
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+    const parsedUser = readJson(userData);
+
+    if (token && parsedUser) {
+      setIsLoggedIn(true);
+      setCurrentUser(parsedUser);
+      return;
+    }
+
+    setIsLoggedIn(false);
+    setCurrentUser(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   }, []);
 
   const renderPage = () => {
@@ -68,17 +83,19 @@ function App() {
     setCurrentPage('dashboard');
   };
 
-  if (!isLoggedIn) {
-    return <Login />;
-  }
-
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-[#f0f2f8] via-[#e8ecf4] to-[#f0f2f8]">
-      <Sidebar setCurrentPage={setCurrentPage} onLogout={handleLogout} currentPage={currentPage} />
-      <main className="flex-1 p-6 lg:p-8 overflow-y-auto max-h-screen">
-        {renderPage()}
-      </main>
-    </div>
+    <ErrorBoundary>
+      {!isLoggedIn ? (
+        <Login />
+      ) : (
+        <div className="flex min-h-screen bg-gradient-to-br from-[#f0f2f8] via-[#e8ecf4] to-[#f0f2f8]">
+          <Sidebar setCurrentPage={setCurrentPage} onLogout={handleLogout} currentPage={currentPage} />
+          <main className="flex-1 p-6 lg:p-8 overflow-y-auto max-h-screen">
+            {renderPage()}
+          </main>
+        </div>
+      )}
+    </ErrorBoundary>
   );
 }
 
